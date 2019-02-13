@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.crypto;
+package org.pivxj.crypto;
 
 import javax.annotation.Nonnull;
 import java.io.File;

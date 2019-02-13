@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.crypto;
+package org.pivxj.crypto;
 
-import org.bitcoinj.wallet.Protos.Wallet.EncryptionType;
+import org.pivxj.wallet.Protos.Wallet.EncryptionType;
 import org.spongycastle.crypto.params.KeyParameter;
 
 import java.io.Serializable;

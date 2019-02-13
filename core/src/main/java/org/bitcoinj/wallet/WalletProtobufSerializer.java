@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.pivxj.wallet;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
-import org.bitcoinj.crypto.KeyCrypter;
-import org.bitcoinj.crypto.KeyCrypterScrypt;
-import org.bitcoinj.script.Script;
-import org.bitcoinj.signers.LocalTransactionSigner;
-import org.bitcoinj.signers.TransactionSigner;
-import org.bitcoinj.utils.ExchangeRate;
-import org.bitcoinj.utils.Fiat;
-import org.bitcoinj.wallet.Protos.Wallet.EncryptionType;
+import org.pivxj.core.*;
+import org.pivxj.core.TransactionConfidence.ConfidenceType;
+import org.pivxj.crypto.KeyCrypter;
+import org.pivxj.crypto.KeyCrypterScrypt;
+import org.pivxj.script.Script;
+import org.pivxj.signers.LocalTransactionSigner;
+import org.pivxj.signers.TransactionSigner;
+import org.pivxj.utils.ExchangeRate;
+import org.pivxj.utils.Fiat;
+import org.pivxj.wallet.Protos.Wallet.EncryptionType;
 
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
@@ -54,7 +54,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * a data interchange format developed by Google with an efficient binary representation, a type safe specification
  * language and compilers that generate code to work with those data structures for many languages. Protocol buffers
  * can have their format evolved over time: conceptually they represent data using (tag, length, value) tuples. The
- * format is defined by the <tt>wallet.proto</tt> file in the bitcoinj source distribution.<p>
+ * format is defined by the <tt>wallet.proto</tt> file in the pivxj source distribution.<p>
  *
  * This class is used through its static methods. The most common operations are writeWallet and readWallet, which do
  * the obvious operations on Output/InputStreams. You can use a {@link java.io.ByteArrayInputStream} and equivalent
@@ -373,12 +373,6 @@ public class WalletProtobufSerializer {
         Date lastBroadcastedAt = confidence.getLastBroadcastedAt();
         if (lastBroadcastedAt != null)
             confidenceBuilder.setLastBroadcastedAt(lastBroadcastedAt.getTime());
-
-        confidenceBuilder.setMinConnections(confidence.getMinConnections());
-        confidenceBuilder.setPeerCount(confidence.getPeerCount());
-        Date sentAt = confidence.getSentAt();
-        if(sentAt != null)
-            confidenceBuilder.setSentTime(sentAt.getTime());
         txBuilder.setConfidence(confidenceBuilder);
     }
 
@@ -613,11 +607,7 @@ public class WalletProtobufSerializer {
     }
 
     private void readTransaction(Protos.Transaction txProto, NetworkParameters params) throws UnreadableWalletException {
-        boolean isIX = txProto.getConfidence().hasIxType() && txProto.getConfidence().getIxType() != Protos.TransactionConfidence.IXType.IX_NONE;
-        Transaction tx = !isIX ? new Transaction(params) : new TransactionLockRequest(params);
-
-        tx.setVersion(txProto.getVersion());
-
+        Transaction tx = new Transaction(params);
         if (txProto.hasUpdatedAt()) {
             tx.setUpdateTime(new Date(txProto.getUpdatedAt()));
         }
@@ -689,7 +679,7 @@ public class WalletProtobufSerializer {
     }
 
     private WalletTransaction connectTransactionOutputs(final NetworkParameters params,
-                                                        final org.bitcoinj.wallet.Protos.Transaction txProto) throws UnreadableWalletException {
+                                                        final org.pivxj.wallet.Protos.Transaction txProto) throws UnreadableWalletException {
         Transaction tx = txMap.get(txProto.getHash());
         final WalletTransaction.Pool pool;
         switch (txProto.getPool()) {
@@ -812,11 +802,6 @@ public class WalletProtobufSerializer {
             default:
                 confidence.setIXType(TransactionConfidence.IXType.IX_NONE); break;
 
-        }
-        if(confidenceProto.hasSentTime())
-            confidence.setSentTime(new Date(confidenceProto.getSentTime()));
-        if(confidenceProto.hasMinConnections()) {
-            confidence.setPeerInfo(confidenceProto.getPeerCount(), confidenceProto.getMinConnections());
         }
     }
 

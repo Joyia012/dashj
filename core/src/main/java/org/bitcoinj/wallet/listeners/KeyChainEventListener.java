@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet.listeners;
+package org.pivxj.wallet.listeners;
 
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.wallet.KeyChain;
+import org.pivxj.core.ECKey;
+import org.pivxj.wallet.KeyChain;
 
 import java.util.List;
 

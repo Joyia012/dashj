@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.store;
+package org.pivxj.store;
 
-import org.bitcoinj.core.*;
+import org.pivxj.core.*;
 
 import java.sql.*;
 import java.util.ArrayList;

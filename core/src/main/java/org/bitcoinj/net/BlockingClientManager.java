@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.net;
+package org.pivxj.net;
 
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -48,7 +48,7 @@ public class BlockingClientManager extends AbstractIdleService implements Client
 
     /**
      * Creates a blocking client manager that will obtain sockets from the given factory. Useful for customising how
-     * bitcoinj connects to the P2P network.
+     * pivxj connects to the P2P network.
      */
     public BlockingClientManager(SocketFactory socketFactory) {
         this.socketFactory = checkNotNull(socketFactory);

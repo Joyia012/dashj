@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.crypto;
+package org.pivxj.crypto;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
@@ -58,7 +58,7 @@ public class DeterministicHierarchy {
     }
 
     /**
-     * Inserts a key into the hierarchy. Used during deserialization: you normally don't need this. Keys must be
+     * Inserts a key into the heirarchy. Used during deserialization: you normally don't need this. Keys must be
      * inserted in order.
      */
     public final void putKey(DeterministicKey key) {

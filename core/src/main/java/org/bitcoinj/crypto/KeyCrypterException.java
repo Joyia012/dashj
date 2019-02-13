@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.crypto;
+package org.pivxj.crypto;
 
 /**
  * <p>Exception to provide the following:</p>

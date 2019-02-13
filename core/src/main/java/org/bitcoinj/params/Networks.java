@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.params;
+package org.pivxj.params;
 
-import org.bitcoinj.core.NetworkParameters;
+import org.pivxj.core.NetworkParameters;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 

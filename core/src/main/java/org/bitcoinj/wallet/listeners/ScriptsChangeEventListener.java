@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet.listeners;
+package org.pivxj.wallet.listeners;
 
-import org.bitcoinj.script.Script;
-import org.bitcoinj.wallet.Wallet;
+import org.pivxj.script.Script;
+import org.pivxj.wallet.Wallet;
 
 import java.util.List;
 

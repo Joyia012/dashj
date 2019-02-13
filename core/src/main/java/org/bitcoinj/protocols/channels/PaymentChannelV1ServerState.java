@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.protocols.channels;
+package org.pivxj.protocols.channels;
 
 import com.google.common.collect.*;
-import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.TransactionSignature;
-import org.bitcoinj.script.Script;
-import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.wallet.SendRequest;
-import org.bitcoinj.wallet.Wallet;
+import org.pivxj.core.*;
+import org.pivxj.crypto.TransactionSignature;
+import org.pivxj.script.Script;
+import org.pivxj.script.ScriptBuilder;
+import org.pivxj.wallet.SendRequest;
+import org.pivxj.wallet.Wallet;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;

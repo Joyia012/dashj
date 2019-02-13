@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet.listeners;
+package org.pivxj.wallet.listeners;
 
-import org.bitcoinj.core.listeners.TransactionConfidenceEventListener;
+import org.pivxj.core.listeners.TransactionConfidenceEventListener;
 
 /**
  * <p>Common interface for wallet changes and transactions.</p>

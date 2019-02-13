@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.pivxj.core;
 
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.BlockStoreException;
-import org.bitcoinj.store.FullPrunedBlockStore;
+import org.pivxj.store.BlockStore;
+import org.pivxj.store.BlockStoreException;
+import org.pivxj.store.FullPrunedBlockStore;
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
@@ -55,7 +55,7 @@ import static com.google.common.base.Preconditions.*;
  * </ol>
  *
  * <p>Checkpoints are used by the SPV {@link BlockChain} to initialize fresh
- * {@link org.bitcoinj.store.SPVBlockStore}s. They are not used by fully validating mode, which instead has a
+ * {@link org.pivxj.store.SPVBlockStore}s. They are not used by fully validating mode, which instead has a
  * different concept of checkpoints that are used to hard-code the validity of blocks that violate BIP30 (duplicate
  * coinbase transactions). Those "checkpoints" can be found in NetworkParameters.</p>
  *
@@ -83,7 +83,7 @@ public class CheckpointManager {
 
     public static final BaseEncoding BASE64 = BaseEncoding.base64().omitPadding();
 
-    /** Loads the default checkpoints bundled with bitcoinj */
+    /** Loads the default checkpoints bundled with pivxj */
     public CheckpointManager(Context context) throws IOException {
         this(context.getParams(), null);
     }
@@ -106,7 +106,7 @@ public class CheckpointManager {
             throw new IOException("Unsupported format.");
     }
 
-    /** Returns a checkpoints stream pointing to inside the bitcoinj JAR */
+    /** Returns a checkpoints stream pointing to inside the pivxj JAR */
     public static InputStream openStream(NetworkParameters params) {
         return CheckpointManager.class.getResourceAsStream("/" + params.getId() + ".checkpoints.txt");
     }

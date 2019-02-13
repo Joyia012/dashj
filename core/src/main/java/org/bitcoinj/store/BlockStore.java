@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.store;
+package org.pivxj.store;
 
-import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.StoredBlock;
+import org.pivxj.core.NetworkParameters;
+import org.pivxj.core.Sha256Hash;
+import org.pivxj.core.StoredBlock;
 
 /**
  * An implementor of BlockStore saves StoredBlock objects to disk. Different implementations store them in
@@ -46,8 +46,8 @@ public interface BlockStore {
 
     /**
      * Returns the {@link StoredBlock} that represents the top of the chain of greatest total work. Note that this
-     * can be arbitrarily expensive, you probably should use {@link org.bitcoinj.core.BlockChain#getChainHead()}
-     * or perhaps {@link org.bitcoinj.core.BlockChain#getBestChainHeight()} which will run in constant time and
+     * can be arbitrarily expensive, you probably should use {@link org.pivxj.core.BlockChain#getChainHead()}
+     * or perhaps {@link org.pivxj.core.BlockChain#getBestChainHeight()} which will run in constant time and
      * not take any heavyweight locks.
      */
     StoredBlock getChainHead() throws BlockStoreException;
@@ -61,7 +61,7 @@ public interface BlockStore {
     void close() throws BlockStoreException;
 
     /**
-     * Get the {@link org.bitcoinj.core.NetworkParameters} of this store.
+     * Get the {@link org.pivxj.core.NetworkParameters} of this store.
      * @return The network params.
      */
     NetworkParameters getParams();

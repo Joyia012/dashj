@@ -1,6 +1,6 @@
-package org.bitcoinj.core;
+package org.pivxj.core;
 
-import org.bitcoinj.store.BlockStore;
+import org.pivxj.store.BlockStore;
 import org.darkcoinj.DarkSend;
 import org.darkcoinj.InstantSend;
 

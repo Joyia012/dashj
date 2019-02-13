@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.net;
+package org.pivxj.net;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

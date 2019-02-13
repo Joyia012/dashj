@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.bitcoinj.core;
+package org.pivxj.core;
 
-import org.darkcoinj.DarkSend;
-import org.darkcoinj.DarkSendSigner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,8 +22,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 
-import static org.bitcoinj.core.Utils.int64ToByteStreamLE;
-import static org.bitcoinj.core.Utils.uint32ToByteStreamLE;
+import static org.pivxj.core.Utils.int64ToByteStreamLE;
+import static org.pivxj.core.Utils.uint32ToByteStreamLE;
 
 public class DarkSendQueue extends Message implements Serializable {
 
@@ -39,9 +37,7 @@ public class DarkSendQueue extends Message implements Serializable {
 
     DarkCoinSystem system;
 
-    DarkSendQueue(NetworkParameters params) {
-        super(params);
-        length = 0;
+    DarkSendQueue() {
         denom = 0;
         vin = null;
         time = 0;

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core.listeners;
+package org.pivxj.core.listeners;
 
-import org.bitcoinj.core.Transaction;
-import org.bitcoinj.wallet.Wallet;
+import org.pivxj.core.Transaction;
+import org.pivxj.wallet.Wallet;
 
 /**
  * <p>Implementors are called when confidence of a transaction changes.</p>

@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.pivxj.wallet;
 
-import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.ECKey.ECDSASignature;
-import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.TransactionConfidence;
-import org.bitcoinj.core.TransactionInput;
-import org.bitcoinj.core.TransactionOutput;
-import org.bitcoinj.crypto.TransactionSignature;
-import org.bitcoinj.script.ScriptChunk;
+import org.pivxj.core.Coin;
+import org.pivxj.core.ECKey;
+import org.pivxj.core.ECKey.ECDSASignature;
+import org.pivxj.core.NetworkParameters;
+import org.pivxj.core.Transaction;
+import org.pivxj.core.TransactionConfidence;
+import org.pivxj.core.TransactionInput;
+import org.pivxj.core.TransactionOutput;
+import org.pivxj.crypto.TransactionSignature;
+import org.pivxj.script.ScriptChunk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,9 +83,8 @@ public class DefaultRiskAnalysis implements RiskAnalysis {
         if (tx.getConfidence().getSource() == TransactionConfidence.Source.SELF)
             return Result.OK;
 
-        // Relative time-locked transactions are risky too. We can't check the locks because usually we don't know the
-        // spent outputs (to know when they were created).
-        if (tx.hasRelativeLockTime()) {
+        // We consider transactions that opt into replace-by-fee at risk of double spending.
+        if (tx.isOptInFullRBF()) {
             nonFinal = tx;
             return Result.NON_FINAL;
         }
@@ -115,7 +114,7 @@ public class DefaultRiskAnalysis implements RiskAnalysis {
 
     /**
      * The reason a transaction is considered non-standard, returned by
-     * {@link #isStandard(org.bitcoinj.core.Transaction)}.
+     * {@link #isStandard(org.pivxj.core.Transaction)}.
      */
     public enum RuleViolation {
         NONE,
@@ -134,7 +133,7 @@ public class DefaultRiskAnalysis implements RiskAnalysis {
      */
     public static RuleViolation isStandard(Transaction tx) {
         // TODO: Finish this function off.
-        if (tx.getVersion() > 2 || tx.getVersion() < 1) {
+        if (tx.getVersion() > 1 || tx.getVersion() < 1) {
             log.warn("TX considered non-standard due to unknown version number {}", tx.getVersion());
             return RuleViolation.VERSION;
         }
@@ -166,7 +165,7 @@ public class DefaultRiskAnalysis implements RiskAnalysis {
      * Checks the output to see if the script violates a standardness rule. Not complete.
      */
     public static RuleViolation isOutputStandard(TransactionOutput output) {
-        if (output.getValue().compareTo(output.getParams().isDIP0001ActiveAtTip() ? MIN_ANALYSIS_NONDUST_OUTPUT.div(10) : MIN_ANALYSIS_NONDUST_OUTPUT) < 0)
+        if (output.getValue().compareTo(MIN_ANALYSIS_NONDUST_OUTPUT) < 0)
             return RuleViolation.DUST;
         for (ScriptChunk chunk : output.getScriptPubKey().getChunks()) {
             if (chunk.isPushData() && !chunk.isShortestPossiblePushData())

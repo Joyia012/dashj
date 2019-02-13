@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core.listeners;
+package org.pivxj.core.listeners;
 
-import org.bitcoinj.core.Peer;
-import org.bitcoinj.core.PeerAddress;
+import org.pivxj.core.Peer;
+import org.pivxj.core.PeerAddress;
 import java.util.Set;
 
 /**

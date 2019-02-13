@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.pivxj.wallet;
 
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.script.Script;
+import org.pivxj.core.ECKey;
+import org.pivxj.script.Script;
 
 import java.util.ArrayList;
 import java.util.Collections;

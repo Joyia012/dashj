@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.bitcoinj.core;
+package org.pivxj.core;
 
-import org.bitcoinj.script.Script;
+import org.pivxj.script.Script;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 
-import static org.bitcoinj.core.Utils.int64ToByteStreamLE;
-import static org.bitcoinj.core.Utils.uint32ToByteStreamLE;
+import static org.pivxj.core.Utils.int64ToByteStreamLE;
+import static org.pivxj.core.Utils.uint32ToByteStreamLE;
 
 public class MasterNodeVote  extends ChildMessage implements Serializable {
     public int votes;

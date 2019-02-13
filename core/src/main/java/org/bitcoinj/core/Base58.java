@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.pivxj.core;
 
 import java.math.BigInteger;
 import java.util.Arrays;

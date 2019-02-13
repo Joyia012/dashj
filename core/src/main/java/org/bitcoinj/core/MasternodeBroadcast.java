@@ -1,7 +1,7 @@
-package org.bitcoinj.core;
+package org.pivxj.core;
 
-import org.bitcoinj.script.Script;
-import org.bitcoinj.script.ScriptBuilder;
+import org.pivxj.script.Script;
+import org.pivxj.script.ScriptBuilder;
 import org.darkcoinj.DarkSendSigner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.jni;
+package org.pivxj.jni;
 
-import org.bitcoinj.core.listeners.*;
-import org.bitcoinj.core.*;
+import org.pivxj.core.listeners.*;
+import org.pivxj.core.*;
 
 import javax.annotation.*;
 import java.util.List;

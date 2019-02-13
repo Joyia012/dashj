@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.protocols.channels;
+package org.pivxj.protocols.channels;
 
 import com.google.common.collect.ImmutableMap;
-import org.bitcoinj.core.*;
-import org.bitcoinj.protocols.channels.PaymentChannelCloseException.CloseReason;
-import org.bitcoinj.utils.Threading;
-import org.bitcoinj.wallet.Wallet;
+import org.pivxj.core.*;
+import org.pivxj.protocols.channels.PaymentChannelCloseException.CloseReason;
+import org.pivxj.utils.Threading;
+import org.pivxj.wallet.Wallet;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;

@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.protocols.channels;
+package org.pivxj.protocols.channels;
 
-import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.InsufficientMoneyException;
-import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.Utils;
-import org.bitcoinj.net.NioClient;
-import org.bitcoinj.net.ProtobufConnection;
-import org.bitcoinj.wallet.Wallet;
+import org.pivxj.core.Coin;
+import org.pivxj.core.ECKey;
+import org.pivxj.core.InsufficientMoneyException;
+import org.pivxj.core.Sha256Hash;
+import org.pivxj.core.Utils;
+import org.pivxj.net.NioClient;
+import org.pivxj.net.ProtobufConnection;
+import org.pivxj.wallet.Wallet;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
@@ -49,7 +49,7 @@ public class PaymentChannelClientConnection {
     /**
      * Attempts to open a new connection to and open a payment channel with the given host and port, blocking until the
      * connection is open. The server is requested to keep the channel open for
-     * {@link org.bitcoinj.protocols.channels.PaymentChannelClient#DEFAULT_TIME_WINDOW}
+     * {@link org.pivxj.protocols.channels.PaymentChannelClient#DEFAULT_TIME_WINDOW}
      * seconds. If the server proposes a longer time the channel will be closed.
      *
      * @param server         The host/port pair where the server is listening.
@@ -75,7 +75,7 @@ public class PaymentChannelClientConnection {
     /**
      * Attempts to open a new connection to and open a payment channel with the given host and port, blocking until the
      * connection is open. The server is requested to keep the channel open for
-     * {@link org.bitcoinj.protocols.channels.PaymentChannelClient#DEFAULT_TIME_WINDOW}
+     * {@link org.pivxj.protocols.channels.PaymentChannelClient#DEFAULT_TIME_WINDOW}
      * seconds. If the server proposes a longer time the channel will be closed.
      *
      * @param server          The host/port pair where the server is listening.
@@ -246,7 +246,21 @@ public class PaymentChannelClientConnection {
     public ListenableFuture<PaymentIncrementAck> incrementPayment(Coin size) throws ValueOutOfRangeException, IllegalStateException {
         return channelClient.incrementPayment(size, null, null);
     }
-
+    /**
+     * Increments the total value which we pay the server.
+     *
+     * @param size How many satoshis to increment the payment by (note: not the new total).
+     * @param info Information about this payment increment, used to extend this protocol.
+     * @throws ValueOutOfRangeException If the size is negative or would pay more than this channel's total value
+     *                                  ({@link PaymentChannelClientConnection#state()}.getTotalValue())
+     * @throws IllegalStateException If the channel has been closed or is not yet open
+     *                               (see {@link PaymentChannelClientConnection#getChannelOpenFuture()} for the second)
+     */
+    /*
+    public ListenableFuture<PaymentIncrementAck> incrementPayment(Coin size, ByteString info) throws ValueOutOfRangeException, IllegalStateException {
+        return channelClient.incrementPayment(size, info, null);
+    }
+*/
     /**
      * Increments the total value which we pay the server.
      *

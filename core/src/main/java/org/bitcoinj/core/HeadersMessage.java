@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.pivxj.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

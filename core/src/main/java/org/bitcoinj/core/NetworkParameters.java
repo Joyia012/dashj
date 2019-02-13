@@ -15,26 +15,27 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.pivxj.core;
 
 import com.google.common.base.Objects;
-import org.bitcoinj.net.discovery.HttpDiscovery;
-import org.bitcoinj.params.*;
-import org.bitcoinj.script.Script;
-import org.bitcoinj.script.ScriptOpCodes;
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.BlockStoreException;
-import org.bitcoinj.utils.MonetaryFormat;
+import org.pivxj.net.discovery.HttpDiscovery;
+import org.pivxj.params.*;
+import org.pivxj.script.Script;
+import org.pivxj.script.ScriptBuilder;
+import org.pivxj.script.ScriptChunk;
+import org.pivxj.script.ScriptOpCodes;
+import org.pivxj.store.BlockStore;
+import org.pivxj.store.BlockStoreException;
+import org.pivxj.utils.MonetaryFormat;
 
 import javax.annotation.Nullable;
-import java.io.ByteArrayOutputStream;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.EnumSet;
 
-import static org.bitcoinj.core.Coin.*;
-import org.bitcoinj.utils.VersionTally;
+import static org.pivxj.core.Coin.*;
+import org.pivxj.utils.VersionTally;
 
 /**
  * <p>NetworkParameters contains the data needed for working with an instantiation of a Bitcoin chain.</p>
@@ -59,7 +60,7 @@ public abstract class NetworkParameters {
     /** Unit test network. */
     public static final String ID_UNITTESTNET = CoinDefinition.ID_UNITTESTNET; //"com.google.bitcoin.unittest";
     /** The string returned by getId() for regtest mode. */
-    public static final String ID_REGTEST = "org.bitcoin.regtest";
+    public static final String ID_REGTEST = "org.pivx.regtest";
 
     /** The string used by the payment protocol to represent the main net. */
     public static final String PAYMENT_PROTOCOL_ID_MAINNET = "main";
@@ -84,16 +85,12 @@ public abstract class NetworkParameters {
     protected int bip32HeaderPub;
     protected int bip32HeaderPriv;
 
+    protected long zerocoinStartedHeight;
+
     /** Used to check majorities for block version upgrade */
     protected int majorityEnforceBlockUpgrade;
     protected int majorityRejectBlockOutdated;
     protected int majorityWindow;
-
-    /** Used to check for DIP0001 upgrade */
-    protected int DIP0001Window;
-    protected int DIP0001Upgrade;
-    protected int DIP0001BlockHeight;
-    protected boolean DIP0001ActiveAtTip = false;
 
     /**
      * See getId(). This may be null for old deserialized wallets. In that case we derive it heuristically
@@ -106,7 +103,6 @@ public abstract class NetworkParameters {
      */
     protected int spendableCoinbaseDepth;
     protected int subsidyDecreaseBlockCount;
-    protected int budgetPaymentsStartBlock;
     
     protected int[] acceptableAddressCodes;
     protected String[] dnsSeeds;
@@ -119,15 +115,15 @@ public abstract class NetworkParameters {
 
 
     //Dash Extra Parameters
-    protected String strSporkAddress;
+    protected String strSporkKey;
     String strMasternodePaymentsPubKey;
     String strDarksendPoolDummyAddress;
     long nStartMasternodePayments;
 
 
 
-    public String getSporkAddress() {
-        return strSporkAddress;
+    public String getSporkKey() {
+        return strSporkKey;
     }
 
     protected NetworkParameters() {
@@ -135,26 +131,62 @@ public abstract class NetworkParameters {
         genesisBlock = createGenesis(this);
     }
     //TODO:  put these bytes into the CoinDefinition
-    private static Block createGenesis(NetworkParameters n) {
+//    private static Block createGenesis(NetworkParameters n) {
+//        Block genesisBlock = new Block(n, Block.BLOCK_VERSION_GENESIS);
+//        //byte[] txBytes = Utils.HEX.decode("01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff5e04ffff001d01044c55552e532e204e657773202620576f726c64205265706f7274204a616e203238203230313620576974682048697320416273656e63652c205472756d7020446f6d696e6174657320416e6f7468657220446562617465ffffffff0100ba1dd205000000434104c10e83b2703ccf322f7dbd62dd5855ac7c10bd055814ce121ba32607d573b8810c02c0582aed05b4deb9c4b77b26d92428c61256cd42774babea0a073b2ed0c9ac00000000");
+//        Transaction tx = new Transaction(n);
+//        try {
+//            // A script containing the difficulty bits and the following message:
+//            //
+//            //   coin dependent
+//            byte[] bytes = Utils.HEX.decode("04ffff001d01043642424320323031382f31322f333120476c6f62616c206d61726b65747320696e20776f72737420796561722073696e63652032303038");//CoinDefinition.genesisTxInBytes);
+//            TransactionInput transactionInput = new TransactionInput(n, tx, bytes);
+//            transactionInput.setSequenceNumber(4294967295L);
+//            tx.addInput(transactionInput);
+
+//            byte[] pubKey = Utils.HEX.decode("4104c2851936b2196beb85e7eca91697884918bc6deacd4ca49b52418d376a092913bde42bc868178c0ed436c184259edd0bf2a3ff32388facd6d6332e8de31c9121ac");
+//            ScriptBuilder scriptBuilder = new ScriptBuilder().addChunk(new ScriptChunk(65,pubKey)).op(ScriptOpCodes.OP_CHECKSIG);
+//            Script script = scriptBuilder.build();
+//            tx.addOutput(new TransactionOutput(n, tx, Coin.valueOf(CoinDefinition.genesisBlockValue, 0), script.getProgram()));
+
+//        } catch (Exception e) {
+//            // Cannot happen.
+//            throw new RuntimeException(e);
+//        }
+//        //System.out.println(tx.getOutput(0).toString());
+//        genesisBlock.addTransaction(tx);
+//        //System.out.println("genesis tx hash: "+tx.getHashAsString());
+//        // genesis tx should be -> 1b2ef6e2f28be914103a277377ae7729dcd125dfeb8bf97bd5964ba72b6dc39b
+//        if (!tx.getHashAsString().equals("0000071cf2d95aec5ba4818418756c93cb12cd627191710e8969f2f35c3530de")) throw new IllegalStateException("invalid genesis tx: "+tx.getHashAsString());
+//        return genesisBlock;
+//    }
+
+
+ private static Block createGenesis(NetworkParameters n) {
         Block genesisBlock = new Block(n, Block.BLOCK_VERSION_GENESIS);
-        Transaction t = new Transaction(n);
+        Transaction tx = new Transaction(n);
         try {
             // A script containing the difficulty bits and the following message:
-            //
-            //   coin dependent
+            // 2017-09-21 22:01:04 : Bitcoin Block Hash for Height 486382 : 00000000000000000092d15e5b3e6e8269398a84a60ae5a2dbd4e7f431199d03
+            // coin dependent
             byte[] bytes = Utils.HEX.decode(CoinDefinition.genesisTxInBytes);
+            TransactionInput transactionInput = new TransactionInput(n, tx, bytes);
+            transactionInput.setSequenceNumber(4294967295L);
+            tx.addInput(transactionInput);
 
-            t.addInput(new TransactionInput(n, t, bytes));
-            ByteArrayOutputStream scriptPubKeyBytes = new ByteArrayOutputStream();
-            Script.writeBytes(scriptPubKeyBytes, Utils.HEX.decode(CoinDefinition.genesisTxOutBytes));
-
-            scriptPubKeyBytes.write(ScriptOpCodes.OP_CHECKSIG);
-            t.addOutput(new TransactionOutput(n, t, Coin.valueOf(CoinDefinition.genesisBlockValue, 0), scriptPubKeyBytes.toByteArray()));
+            byte[] pubKey = Utils.HEX.decode(CoinDefinition.genesisTxPubKey);
+            ScriptBuilder scriptBuilder = new ScriptBuilder().addChunk(new ScriptChunk(65,pubKey)).op(ScriptOpCodes.OP_CHECKSIG);
+            Script script = scriptBuilder.build();
+            tx.addOutput(new TransactionOutput(n, tx, Coin.valueOf(CoinDefinition.genesisBlockValue, 0), script.getProgram()));
         } catch (Exception e) {
             // Cannot happen.
             throw new RuntimeException(e);
         }
-        genesisBlock.addTransaction(t);
+        genesisBlock.addTransaction(tx);
+
+        if (!tx.getHashAsString().equals(CoinDefinition.genesisMerkleRoot))
+            throw new IllegalStateException("invalid genesis tx: "+tx.getHashAsString());
+
         return genesisBlock;
     }
 
@@ -303,10 +335,6 @@ public abstract class NetworkParameters {
         return subsidyDecreaseBlockCount;
     }
 
-    public int getBudgetPaymentsStartBlock() {
-        return budgetPaymentsStartBlock;
-    }
-
     /** Returns DNS names that when resolved, give IP addresses of active peers. */
     public String[] getDnsSeeds() {
         return dnsSeeds;
@@ -317,7 +345,7 @@ public abstract class NetworkParameters {
         return addrSeeds;
     }
 
-    /** Returns discovery objects for seeds implementing the Cartographer protocol. See {@link org.bitcoinj.net.discovery.HttpDiscovery} for more info. */
+    /** Returns discovery objects for seeds implementing the Cartographer protocol. See {@link org.pivxj.net.discovery.HttpDiscovery} for more info. */
     public HttpDiscovery.Details[] getHttpSeeds() {
         return httpSeeds;
     }
@@ -348,7 +376,7 @@ public abstract class NetworkParameters {
     }
 
     /**
-     * First byte of a base58 encoded address. See {@link org.bitcoinj.core.Address}. This is the same as acceptableAddressCodes[0] and
+     * First byte of a base58 encoded address. See {@link org.pivxj.core.Address}. This is the same as acceptableAddressCodes[0] and
      * is the one used for "normal" addresses. Other types of address may be encountered with version codes found in
      * the acceptableAddressCodes array.
      */
@@ -363,7 +391,7 @@ public abstract class NetworkParameters {
         return p2shHeader;
     }
 
-    /** First byte of a base58 encoded dumped private key. See {@link org.bitcoinj.core.DumpedPrivateKey}. */
+    /** First byte of a base58 encoded dumped private key. See {@link org.pivxj.core.DumpedPrivateKey}. */
     public int getDumpedPrivateKeyHeader() {
         return dumpedPrivateKeyHeader;
     }
@@ -404,7 +432,7 @@ public abstract class NetworkParameters {
     }
 
     /**
-     * The key used to sign {@link org.bitcoinj.core.AlertMessage}s. You can use {@link org.bitcoinj.core.ECKey#verify(byte[], byte[], byte[])} to verify
+     * The key used to sign {@link org.pivxj.core.AlertMessage}s. You can use {@link org.pivxj.core.ECKey#verify(byte[], byte[], byte[])} to verify
      * signatures using it.
      */
     public byte[] getAlertSigningKey() {
@@ -471,6 +499,14 @@ public abstract class NetworkParameters {
             }
         }
         return defaultSerializer;
+    }
+
+    /**
+     * Zerocoin started height in blockchain
+     * @return
+     */
+    public long getZerocoinStartedHeight() {
+        return zerocoinStartedHeight;
     }
 
     /**
@@ -557,7 +593,7 @@ public abstract class NetworkParameters {
     public static enum ProtocolVersion {
         MINIMUM(CoinDefinition.MIN_PROTOCOL_VERSION),
         PONG(60001),
-        BLOOM_FILTER(CoinDefinition.MIN_PROTOCOL_VERSION),
+        BLOOM_FILTER(70000),
         CURRENT(CoinDefinition.PROTOCOL_VERSION);
 
         private final int bitcoinProtocol;
@@ -570,9 +606,4 @@ public abstract class NetworkParameters {
             return bitcoinProtocol;
         }
     }
-
-    //DASH Specific
-    public boolean isDIP0001ActiveAtTip() { return DIP0001ActiveAtTip; }
-    public void setDIPActiveAtTip(boolean active) { DIP0001ActiveAtTip = active; }
-    public int getDIP0001BlockHeight() { return DIP0001BlockHeight; }
 }

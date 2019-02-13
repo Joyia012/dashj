@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.pivxj.wallet;
 
-import org.bitcoinj.core.Transaction;
+import org.pivxj.core.Transaction;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
- * Stores data about a transaction that is only relevant to the {@link org.bitcoinj.wallet.Wallet} class.
+ * Stores data about a transaction that is only relevant to the {@link org.pivxj.wallet.Wallet} class.
  */
 public class WalletTransaction {
     public enum Pool {

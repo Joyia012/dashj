@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.net.discovery;
+package org.pivxj.net.discovery;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.utils.*;
+import org.pivxj.core.*;
+import org.pivxj.utils.*;
 
 import java.net.*;
 import java.util.*;

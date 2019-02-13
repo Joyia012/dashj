@@ -1,11 +1,10 @@
-package org.bitcoinj.kits;
+package org.pivxj.kits;
 
-import org.bitcoinj.core.Context;
-import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.BlockStoreException;
-import org.bitcoinj.store.LevelDBBlockStore;
-import org.bitcoinj.store.SPVBlockStore;
+import org.pivxj.core.NetworkParameters;
+import org.pivxj.store.BlockStore;
+import org.pivxj.store.BlockStoreException;
+import org.pivxj.store.LevelDBBlockStore;
+import org.pivxj.store.SPVBlockStore;
 
 import java.io.File;
 

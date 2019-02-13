@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.pivxj.core;
 
-import org.bitcoinj.script.*;
+import org.pivxj.script.*;
 import com.google.common.base.Objects;
 
 import java.io.*;

@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.params;
+package org.pivxj.params;
 
 import java.math.BigInteger;
 import java.util.concurrent.TimeUnit;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.utils.MonetaryFormat;
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.BlockStoreException;
-import org.bitcoinj.utils.MonetaryFormat;
+import org.pivxj.core.*;
+import org.pivxj.utils.MonetaryFormat;
+import org.pivxj.store.BlockStore;
+import org.pivxj.store.BlockStoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,11 +44,10 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
         super();
     }
 
-
-    /**
-     * Checks if we are at a difficulty transition point.
-     * @param storedPrev The previous stored block
-     * @return If this is a difficulty transition point
+    /** 
+     * Checks if we are at a difficulty transition point. \
+     * @param storedPrev The previous stored block 
+     * @return If this is a difficulty transition point 
      */
     protected boolean isDifficultyTransitionPoint(StoredBlock storedPrev) {
         return ((storedPrev.getHeight() + 1) % this.getInterval()) == 0;
@@ -125,7 +123,7 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
 
     @Override
     public Coin getMinNonDustOutput() {
-        return isDIP0001ActiveAtTip() ? Transaction.MIN_NONDUST_OUTPUT.div(10) : Transaction.MIN_NONDUST_OUTPUT;
+        return Transaction.MIN_NONDUST_OUTPUT;
     }
 
     @Override
@@ -150,6 +148,6 @@ public abstract class AbstractBitcoinNetParams extends NetworkParameters {
 
     @Override
     public boolean hasMaxMoney() {
-        return true;
+        return false;
     }
 }

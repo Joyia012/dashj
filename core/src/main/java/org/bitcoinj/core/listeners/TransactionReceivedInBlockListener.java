@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core.listeners;
+package org.pivxj.core.listeners;
 
-import org.bitcoinj.core.BlockChain;
-import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.StoredBlock;
-import org.bitcoinj.core.Transaction;
-import org.bitcoinj.core.VerificationException;
+import org.pivxj.core.BlockChain;
+import org.pivxj.core.Sha256Hash;
+import org.pivxj.core.StoredBlock;
+import org.pivxj.core.Transaction;
+import org.pivxj.core.VerificationException;
 
 /**
  * Listener interface for when we receive a new block that contains a relevant

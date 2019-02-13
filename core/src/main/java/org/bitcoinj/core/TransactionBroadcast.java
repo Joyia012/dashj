@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.pivxj.core;
 
 import com.google.common.annotations.*;
 import com.google.common.base.*;
 import com.google.common.util.concurrent.*;
-import org.bitcoinj.utils.*;
-import org.bitcoinj.wallet.Wallet;
+import org.pivxj.utils.*;
+import org.pivxj.wallet.Wallet;
 import org.slf4j.*;
 
 import javax.annotation.*;
@@ -28,7 +28,7 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import static com.google.common.base.Preconditions.checkState;
-import org.bitcoinj.core.listeners.PreMessageReceivedEventListener;
+import org.pivxj.core.listeners.PreMessageReceivedEventListener;
 
 /**
  * Represents a single transaction broadcast that we are performing. A broadcast occurs after a new transaction is created
@@ -43,6 +43,7 @@ public class TransactionBroadcast {
     private final SettableFuture<Transaction> future = SettableFuture.create();
     private final PeerGroup peerGroup;
     private final Transaction tx;
+    private boolean isSwiftX;
     private int minConnections;
     private int numWaitingFor;
 
@@ -56,6 +57,13 @@ public class TransactionBroadcast {
     TransactionBroadcast(PeerGroup peerGroup, Transaction tx) {
         this.peerGroup = peerGroup;
         this.tx = tx;
+        this.minConnections = Math.max(1, peerGroup.getMinBroadcastConnections());
+    }
+
+    TransactionBroadcast(PeerGroup peerGroup, Transaction tx,boolean isSwiftX) {
+        this.peerGroup = peerGroup;
+        this.tx = tx;
+        this.isSwiftX = isSwiftX;
         this.minConnections = Math.max(1, peerGroup.getMinBroadcastConnections());
     }
 
@@ -116,15 +124,8 @@ public class TransactionBroadcast {
     }
 
     private class EnoughAvailablePeers implements Runnable {
-        private Context context;
-
-        public EnoughAvailablePeers() {
-            this.context = Context.get();
-        }
-
         @Override
         public void run() {
-            Context.propagate(context);
             // We now have enough connected peers to send the transaction.
             // This can be called immediately if we already have enough. Otherwise it'll be called from a peer
             // thread.
@@ -154,16 +155,21 @@ public class TransactionBroadcast {
             peers = peers.subList(0, numToBroadcastTo);
             log.info("broadcastTransaction: We have {} peers, adding {} to the memory pool", numConnected, tx.getHashAsString());
             log.info("Sending to {} peers, will wait for {}, sending to: {}", numToBroadcastTo, numWaitingFor, Joiner.on(",").join(peers));
+            Message message;
+            // SwiftX
+            if (isSwiftX) {
+                // transaction lock request
+                TransactionLockRequest transactionLockRequest = new TransactionLockRequest(tx.params, tx.payload);
+                message = transactionLockRequest;
+            }else {
+                // regular tx
+                message = tx;
+            }
             for (Peer peer : peers) {
                 try {
-                    peer.sendMessage(tx);
+                    peer.sendMessage(message);
                     // We don't record the peer as having seen the tx in the memory pool because we want to track only
                     // how many peers announced to us.
-
-                    //the transaction has been sent, mark it and update the listeners
-                    tx.getConfidence().setSent();
-                    tx.getConfidence().setPeerInfo(numConnected, minConnections);
-                    tx.getConfidence().queueListeners(TransactionConfidence.Listener.ChangeReason.SENT);
                 } catch (Exception e) {
                     log.error("Caught exception sending to {}", peer, e);
                 }
@@ -268,7 +274,7 @@ public class TransactionBroadcast {
 
     /**
      * Sets the given callback for receiving progress values, which will run on the user thread. See
-     * {@link org.bitcoinj.utils.Threading} for details.  If the broadcast has already started then the callback will
+     * {@link org.pivxj.utils.Threading} for details.  If the broadcast has already started then the callback will
      * be invoked immediately with the current progress.
      */
     public void setProgressCallback(ProgressCallback callback) {

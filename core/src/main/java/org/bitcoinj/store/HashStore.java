@@ -14,27 +14,18 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.store;
+package org.pivxj.store;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.utils.Threading;
+import org.pivxj.core.*;
+import org.pivxj.utils.Threading;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileLock;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
-
-import static com.google.common.base.Preconditions.*;
 
 // TODO: Lose the mmap in this class. There are too many platform bugs that require odd workarounds.
 

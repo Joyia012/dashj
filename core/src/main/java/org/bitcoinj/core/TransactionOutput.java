@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.pivxj.core;
 
 import com.google.common.base.Objects;
-import org.bitcoinj.script.*;
-import org.bitcoinj.wallet.Wallet;
+import org.pivxj.script.*;
+import org.pivxj.wallet.Wallet;
 import org.slf4j.*;
 
 import javax.annotation.*;
@@ -223,7 +223,7 @@ public class TransactionOutput extends ChildMessage {
      * so we call them "dust outputs" and they're made non standard. The choice of one third is somewhat arbitrary and
      * may change in future.</p>
      *
-     * <p>You probably should use {@link org.bitcoinj.core.TransactionOutput#getMinNonDustValue()} which uses
+     * <p>You probably should use {@link org.pivxj.core.TransactionOutput#getMinNonDustValue()} which uses
      * a safe fee-per-kb by default.</p>
      *
      * @param feePerKb The fee required per kilobyte. Note that this is the same as Bitcoin Core's -minrelaytxfee * 3
@@ -244,7 +244,7 @@ public class TransactionOutput extends ChildMessage {
      * {@link Transaction#MIN_NONDUST_OUTPUT}.
      */
     public Coin getMinNonDustValue() {
-        return getMinNonDustValue(params.isDIP0001ActiveAtTip() ? Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.multiply(3).div(10) : Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.multiply(3));
+        return getMinNonDustValue(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.multiply(3));
     }
 
     /**
@@ -331,7 +331,7 @@ public class TransactionOutput extends ChildMessage {
             }
         } catch (ScriptException e) {
             // Just means we didn't understand the output of this transaction: ignore it.
-            log.debug("Could not parse tx {} output script: {}", parent != null ? parent.getHash() : "(no parent)", e.toString());
+            log.debug("Could not parse tx output script: {}", e.toString());
             return false;
         }
     }

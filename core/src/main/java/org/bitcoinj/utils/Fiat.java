@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.utils;
+package org.pivxj.utils;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-import org.bitcoinj.core.Monetary;
+import org.pivxj.core.Monetary;
 import com.google.common.base.Objects;
 import com.google.common.math.LongMath;
 import com.google.common.primitives.Longs;
 
 /**
- * Represents a monetary fiat value. It was decided to not fold this into {@link org.bitcoinj.core.Coin} because of type
+ * Represents a monetary fiat value. It was decided to not fold this into {@link org.pivxj.core.Coin} because of type
  * safety. Fiat values always come with an attached currency code.
  * 
  * This class is immutable.
@@ -80,7 +80,7 @@ public final class Fiat implements Monetary, Comparable<Fiat>, Serializable {
      * "1.23E3", "1234.5E-5".
      * 
      * @throws IllegalArgumentException
-     *             if you try to specify more than 4 digits after the comma, or a value out of range.
+     *             if you try to specify fractional satoshis, or a value out of range.
      */
     public static Fiat parseFiat(final String currencyCode, final String str) {
         try {
@@ -141,7 +141,7 @@ public final class Fiat implements Monetary, Comparable<Fiat>, Serializable {
     }
 
     /**
-     * Returns true if the monetary value represented by this instance is greater than that of the given other Fiat,
+     * Returns true if the monetary value represented by this instance is greater than that of the given other Coin,
      * otherwise false.
      */
     public boolean isGreaterThan(Fiat other) {
@@ -149,7 +149,7 @@ public final class Fiat implements Monetary, Comparable<Fiat>, Serializable {
     }
 
     /**
-     * Returns true if the monetary value represented by this instance is less than that of the given other Fiat,
+     * Returns true if the monetary value represented by this instance is less than that of the given other Coin,
      * otherwise false.
      */
     public boolean isLessThan(Fiat other) {
@@ -168,7 +168,7 @@ public final class Fiat implements Monetary, Comparable<Fiat>, Serializable {
     }
 
     /**
-     * Returns the number of "smallest units" of this monetary value. It's deprecated in favour of accessing {@link #value}
+     * Returns the number of satoshis of this monetary value. It's deprecated in favour of accessing {@link #value}
      * directly.
      */
     public long longValue() {
@@ -189,8 +189,8 @@ public final class Fiat implements Monetary, Comparable<Fiat>, Serializable {
 
     /**
      * <p>
-     * Returns the value as a plain string. The result is unformatted with no trailing zeroes. For
-     * instance, a value of 150000 "smallest units" gives an output string of "0.0015".
+     * Returns the value as a plain string denominated in BTC. The result is unformatted with no trailing zeroes. For
+     * instance, a value of 150000 satoshis gives an output string of "0.0015" BTC
      * </p>
      */
     public String toPlainString() {

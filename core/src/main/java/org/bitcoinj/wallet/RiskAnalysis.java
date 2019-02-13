@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.pivxj.wallet;
 
-import org.bitcoinj.core.Transaction;
+import org.pivxj.core.Transaction;
 
 import java.util.List;
 

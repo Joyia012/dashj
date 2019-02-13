@@ -12,9 +12,9 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core.listeners;
+package org.pivxj.core.listeners;
 
-import org.bitcoinj.core.*;
+import org.pivxj.core.*;
 
 import java.util.*;
 

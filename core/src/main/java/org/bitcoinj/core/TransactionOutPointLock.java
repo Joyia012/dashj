@@ -1,6 +1,5 @@
-package org.bitcoinj.core;
+package org.pivxj.core;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -14,7 +13,6 @@ public class TransactionOutPointLock { //COutPointLock
 
     TransactionOutPoint outpoint;
     HashMap<TransactionOutPoint, TransactionLockVote> mapMasternodeVotes;
-    boolean attacked = false;
 
     TransactionOutPointLock(NetworkParameters params, TransactionOutPoint outpoint)
     {
@@ -42,11 +40,7 @@ public class TransactionOutPointLock { //COutPointLock
         return mapMasternodeVotes.values();
     }
 
-    public int countVotes() { return attacked ? 0 : mapMasternodeVotes.size(); }
+    public int countVotes() { return mapMasternodeVotes.size(); }
 
-    public boolean isReady() {
-        return !attacked && countVotes() >= SIGNATURES_REQUIRED;
-    }
-
-    void markAsAttacked() { attacked = true; }
+    public boolean isReady() { return countVotes() >= SIGNATURES_REQUIRED; }
 }

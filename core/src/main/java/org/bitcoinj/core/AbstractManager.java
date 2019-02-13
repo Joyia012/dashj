@@ -1,4 +1,4 @@
-package org.bitcoinj.core;
+package org.pivxj.core;
 
 
 import static com.google.common.base.Preconditions.checkState;

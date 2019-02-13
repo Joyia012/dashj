@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.protocols.channels;
+package org.pivxj.protocols.channels;
 
-import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.Sha256Hash;
-import org.bitcoinj.core.TransactionBroadcaster;
-import org.bitcoinj.net.NioServer;
-import org.bitcoinj.net.ProtobufConnection;
-import org.bitcoinj.net.StreamConnectionFactory;
-import org.bitcoinj.wallet.Wallet;
+import org.pivxj.core.Coin;
+import org.pivxj.core.Sha256Hash;
+import org.pivxj.core.TransactionBroadcaster;
+import org.pivxj.net.NioServer;
+import org.pivxj.net.ProtobufConnection;
+import org.pivxj.net.StreamConnectionFactory;
+import org.pivxj.wallet.Wallet;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.ByteString;

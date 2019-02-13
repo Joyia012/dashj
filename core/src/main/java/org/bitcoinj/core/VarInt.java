@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.pivxj.core;
 
 /**
  * A variable-length encoded unsigned integer using Satoshi's encoding (a.k.a. "CompactSize").
@@ -53,6 +53,7 @@ public class VarInt {
         } else {
             value = Utils.readInt64(buf, offset + 1);
             originallyEncodedSize = 9; // 1 marker + 8 data bytes (64 bits)
+            System.out.println("REading varInt 64 bits");
         }
     }
 

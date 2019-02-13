@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.pivxj.core;
 
 @SuppressWarnings("serial")
 public class AddressFormatException extends IllegalArgumentException {

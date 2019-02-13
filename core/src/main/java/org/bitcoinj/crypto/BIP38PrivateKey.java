@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.crypto;
+package org.pivxj.crypto;
 
-import org.bitcoinj.core.*;
+import org.pivxj.core.*;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.primitives.Bytes;

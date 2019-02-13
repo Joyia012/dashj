@@ -1,6 +1,4 @@
-package org.bitcoinj.utils;
-
-import java.util.Comparator;
+package org.pivxj.utils;
 
 /**
  * Created by Eric on 2/24/2016.

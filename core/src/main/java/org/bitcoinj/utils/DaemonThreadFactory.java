@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.utils;
+package org.pivxj.utils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

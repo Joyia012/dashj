@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.net;
+package org.pivxj.net;
 
-import org.bitcoinj.core.Utils;
-import org.bitcoinj.utils.Threading;
+import org.pivxj.core.Utils;
+import org.pivxj.utils.Threading;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.MessageLite;

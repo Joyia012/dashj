@@ -13,10 +13,10 @@
  */
 
 /**
- * The core package contains classes for network messages like {@link org.bitcoinj.core.Block} and
- * {@link org.bitcoinj.core.Transaction}, peer connectivity via {@link org.bitcoinj.core.PeerGroup},
+ * The core package contains classes for network messages like {@link org.pivxj.core.Block} and
+ * {@link org.pivxj.core.Transaction}, peer connectivity via {@link org.pivxj.core.PeerGroup},
  * and block chain management.
  * If what you're doing can be described as basic bitcoin tasks, the code is probably found here.
  * To learn more please consult the documentation on the website.
  */
-package org.bitcoinj.core;
+package org.pivxj.core;

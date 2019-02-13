@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.pivxj.wallet;
 
-import org.bitcoinj.core.ECKey;
+import org.pivxj.core.ECKey;
 
 import javax.annotation.Nullable;
 

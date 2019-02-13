@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.protocols.payments;
+package org.pivxj.protocols.payments;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.X509Utils;
-import org.bitcoinj.script.ScriptBuilder;
+import org.pivxj.core.*;
+import org.pivxj.crypto.X509Utils;
+import org.pivxj.script.ScriptBuilder;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
@@ -27,9 +27,6 @@ import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.bitcoin.protocols.payments.Protos;
-import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.X509Utils;
-import org.bitcoinj.script.ScriptBuilder;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;

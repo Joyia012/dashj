@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.pivxj.core;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.bitcoinj.core.Utils.*;
+import static org.pivxj.core.Utils.*;
 import com.google.common.base.Objects;
 
 /**
@@ -236,7 +236,7 @@ public class PartialMerkleTree extends Message {
         if (transactionCount == 0)
             throw new VerificationException("Got a CPartialMerkleTree with 0 transactions");
         // check for excessively high numbers of transactions
-        if (transactionCount > ((params.isDIP0001ActiveAtTip() ? Block.MAX_BLOCK_SIZE_DIP0001 : Block.MAX_BLOCK_SIZE) / 60)) // 60 is the lower bound for the size of a serialized CTransaction
+        if (transactionCount > Block.MAX_BLOCK_SIZE / 60) // 60 is the lower bound for the size of a serialized CTransaction
             throw new VerificationException("Got a CPartialMerkleTree with more transactions than is possible");
         // there can never be more hashes provided than one for every txid
         if (hashes.size() > transactionCount)

@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.params;
+package org.pivxj.params;
 
-import org.bitcoinj.core.CoinDefinition;
-import org.bitcoinj.core.Utils;
+import org.pivxj.core.CoinDefinition;
 
 
 import static com.google.common.base.Preconditions.checkState;
@@ -45,14 +44,12 @@ public class TestNet2Params extends AbstractBitcoinNetParams {
         maxTarget = CoinDefinition.proofOfWorkLimit;
         dumpedPrivateKeyHeader = 128 + CoinDefinition.testnetAddressHeader;
 
-        genesisBlock.setTime(CoinDefinition.testnetGenesisBlockTime);
-        genesisBlock.setDifficultyTarget(CoinDefinition.testnetGenesisBlockDifficultyTarget);
-        genesisBlock.setNonce(CoinDefinition.testnetGenesisBlockNonce);
+        genesisBlock.setTime(1296688602L);
+        genesisBlock.setDifficultyTarget(0x1d07fff8L);
+        genesisBlock.setNonce(384568319);
         spendableCoinbaseDepth = CoinDefinition.spendableCoinbaseDepth;
         subsidyDecreaseBlockCount = CoinDefinition.subsidyDecreaseBlockCount;
         String genesisHash = genesisBlock.getHashAsString();
-        if(CoinDefinition.supportsTestNet)
-            checkState(genesisHash.equals(CoinDefinition.testnetGenesisHash));
         //checkState(genesisHash.equals("00000007199508e34a9ff81e6ec0c477a4cccff2a4767a8eee39c11db367b008"));
         dnsSeeds = null;
         addrSeeds = null;
@@ -62,10 +59,6 @@ public class TestNet2Params extends AbstractBitcoinNetParams {
         majorityEnforceBlockUpgrade = TESTNET_MAJORITY_ENFORCE_BLOCK_UPGRADE;
         majorityRejectBlockOutdated = TESTNET_MAJORITY_REJECT_BLOCK_OUTDATED;
         majorityWindow = TESTNET_MAJORITY_WINDOW;
-
-        DIP0001BlockHeight = 15000;
-        strSporkAddress = "yjPtiKh2uwk3bDutTEA2q9mCtXyiZRWn55";
-
     }
 
     private static TestNet2Params instance;

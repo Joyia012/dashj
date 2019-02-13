@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.utils;
+package org.pivxj.utils;
 
-import org.bitcoinj.core.Block;
-import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.core.ProtocolException;
-import org.bitcoinj.core.Utils;
+import org.pivxj.core.Block;
+import org.pivxj.core.NetworkParameters;
+import org.pivxj.core.ProtocolException;
+import org.pivxj.core.Utils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,7 +36,7 @@ import java.util.NoSuchElementException;
  * blocks together. Importing block data with this tool can be a lot faster than syncing over the network, if you
  * have the files available.</p>
  * 
- * <p>In order to comply with {@link Iterator}, this class swallows a lot of {@link IOException}s, which may result in a few
+ * <p>In order to comply with Iterator&lt;Block>, this class swallows a lot of IOExceptions, which may result in a few
  * blocks being missed followed by a huge set of orphan blocks.</p>
  * 
  * <p>To blindly import all files which can be found in Bitcoin Core (version >= 0.8) datadir automatically,

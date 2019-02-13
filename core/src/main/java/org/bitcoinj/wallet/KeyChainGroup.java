@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.pivxj.wallet;
 
 import com.google.common.collect.*;
 import com.google.protobuf.*;
-import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.*;
-import org.bitcoinj.script.*;
-import org.bitcoinj.utils.*;
-import org.bitcoinj.wallet.listeners.KeyChainEventListener;
+import org.pivxj.core.*;
+import org.pivxj.crypto.*;
+import org.pivxj.script.*;
+import org.pivxj.utils.*;
+import org.pivxj.wallet.listeners.KeyChainEventListener;
 import org.slf4j.*;
 import org.spongycastle.crypto.params.*;
 
@@ -35,7 +35,7 @@ import java.util.concurrent.*;
 import static com.google.common.base.Preconditions.*;
 
 /**
- * <p>A KeyChainGroup is used by the {@link org.bitcoinj.wallet.Wallet} and
+ * <p>A KeyChainGroup is used by the {@link org.pivxj.wallet.Wallet} and
  * manages: a {@link BasicKeyChain} object (which will normally be empty), and zero or more
  * {@link DeterministicKeyChain}s. A deterministic key chain will be created lazily/on demand
  * when a fresh or current key is requested, possibly being initialized from the private key bytes of the earliest non
@@ -84,12 +84,9 @@ public class KeyChainGroup implements KeyBag {
         this(params, null, ImmutableList.of(new DeterministicKeyChain(seed)), null, null);
     }
 
-    /**
-     * Creates a keychain group with no basic chain, and an HD chain initialized from the given seed. Account path is
-     * provided.
-     */
-    public KeyChainGroup(NetworkParameters params, DeterministicSeed seed, ImmutableList<ChildNumber> accountPath) {
-        this(params, null, ImmutableList.of(new DeterministicKeyChain(seed, accountPath)), null, null);
+    /** Creates a keychain group with no basic chain, and an HD chain initialized from the given seed. */
+    public KeyChainGroup(NetworkParameters params, DeterministicSeed seed, DeterministicKeyChain.KeyChainType keyChainType) {
+        this(params, null, ImmutableList.of(new DeterministicKeyChain(seed,keyChainType)), null, null);
     }
 
     /**
@@ -98,6 +95,14 @@ public class KeyChainGroup implements KeyBag {
      */
     public KeyChainGroup(NetworkParameters params, DeterministicKey watchKey) {
         this(params, null, ImmutableList.of(DeterministicKeyChain.watch(watchKey)), null, null);
+    }
+
+    /**
+     * Creates a keychain group with no basic chain, and an HD chain that is watching the given watching key.
+     * This HAS to be an account key as returned by {@link DeterministicKeyChain#getWatchingKey()}.
+     */
+    public KeyChainGroup(NetworkParameters params, DeterministicKey watchKey,DeterministicKeyChain.KeyChainType keyChainType) {
+        this(params, null, ImmutableList.of(DeterministicKeyChain.watch(watchKey,keyChainType)), null, null);
     }
 
     // Used for deserialization.
@@ -242,7 +247,8 @@ public class KeyChainGroup implements KeyBag {
             currentAddresses.put(purpose, freshAddress);
             return freshAddress;
         } else {
-            return freshKey(purpose).toAddress(params);
+            DeterministicKey deterministicKey = freshKey(purpose);
+            return deterministicKey.toAddress(params);
         }
     }
 
@@ -480,7 +486,7 @@ public class KeyChainGroup implements KeyBag {
     /**
      * Whether the active keychain is married.  A keychain is married when it vends P2SH addresses
      * from multiple keychains in a multisig relationship.
-     * @see org.bitcoinj.wallet.MarriedKeyChain
+     * @see org.pivxj.wallet.MarriedKeyChain
      */
     public final boolean isMarried() {
         return !chains.isEmpty() && getActiveKeyChain().isMarried();
@@ -488,9 +494,9 @@ public class KeyChainGroup implements KeyBag {
 
     /**
      * Encrypt the keys in the group using the KeyCrypter and the AES key. A good default KeyCrypter to use is
-     * {@link org.bitcoinj.crypto.KeyCrypterScrypt}.
+     * {@link org.pivxj.crypto.KeyCrypterScrypt}.
      *
-     * @throws org.bitcoinj.crypto.KeyCrypterException Thrown if the wallet encryption fails for some reason,
+     * @throws org.pivxj.crypto.KeyCrypterException Thrown if the wallet encryption fails for some reason,
      *         leaving the group unchanged.
      * @throws DeterministicUpgradeRequiredException Thrown if there are random keys but no HD chain.
      */
@@ -515,9 +521,9 @@ public class KeyChainGroup implements KeyBag {
 
     /**
      * Decrypt the keys in the group using the previously given key crypter and the AES key. A good default
-     * KeyCrypter to use is {@link org.bitcoinj.crypto.KeyCrypterScrypt}.
+     * KeyCrypter to use is {@link org.pivxj.crypto.KeyCrypterScrypt}.
      *
-     * @throws org.bitcoinj.crypto.KeyCrypterException Thrown if the wallet decryption fails for some reason, leaving the group unchanged.
+     * @throws org.pivxj.crypto.KeyCrypterException Thrown if the wallet decryption fails for some reason, leaving the group unchanged.
      */
     public void decrypt(KeyParameter aesKey) {
         // This code must be exception safe.

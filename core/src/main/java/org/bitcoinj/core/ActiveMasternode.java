@@ -1,6 +1,6 @@
-package org.bitcoinj.core;
+package org.pivxj.core;
 
-import org.bitcoinj.utils.Threading;
+import org.pivxj.utils.Threading;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

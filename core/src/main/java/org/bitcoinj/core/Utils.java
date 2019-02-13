@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.pivxj.core;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -727,24 +727,5 @@ public class Utils {
 
         // TODO: this should include the 7.1% decline too
         return nTotalCoins;
-    }
-    static double convertBitsToDouble(long nBits){
-        long nShift = (nBits >> 24) & 0xff;
-
-        double dDiff =
-                (double)0x0000ffff / (double)(nBits & 0x00ffffff);
-
-        while (nShift < 29)
-        {
-            dDiff *= 256.0;
-            nShift++;
-        }
-        while (nShift > 29)
-        {
-            dDiff /= 256.0;
-            nShift--;
-        }
-
-        return dDiff;
     }
 }

@@ -15,27 +15,24 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.tools;
+package org.pivxj.tools;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import com.google.common.collect.ImmutableList;
-import org.bitcoinj.core.listeners.*;
-import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.core.Peer;
-import org.bitcoinj.core.PeerGroup;
-import org.bitcoinj.core.Transaction;
-import org.bitcoinj.net.discovery.DnsDiscovery;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.utils.BriefLogFormatter;
-import org.bitcoinj.wallet.DefaultRiskAnalysis;
-import org.bitcoinj.wallet.RiskAnalysis.Result;
+import org.pivxj.core.listeners.*;
+import org.pivxj.core.NetworkParameters;
+import org.pivxj.core.Peer;
+import org.pivxj.core.PeerGroup;
+import org.pivxj.core.Transaction;
+import org.pivxj.net.discovery.DnsDiscovery;
+import org.pivxj.params.MainNetParams;
+import org.pivxj.utils.BriefLogFormatter;
+import org.pivxj.wallet.DefaultRiskAnalysis;
+import org.pivxj.wallet.RiskAnalysis.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class WatchMempool {
     private static Logger log = LoggerFactory.getLogger(WatchMempool.class);

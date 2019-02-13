@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.utils;
+package org.pivxj.utils;
 
-import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.Monetary;
+import org.pivxj.core.Coin;
+import org.pivxj.core.Monetary;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormatSymbols;
@@ -52,11 +52,11 @@ public final class MonetaryFormat {
     /** Standard format for fiat amounts. */
     public static final MonetaryFormat FIAT = new MonetaryFormat().shift(0).minDecimals(2).repeatOptionalDecimals(2, 1);
     /** Currency code for base 1 Bitcoin. */
-    public static final String CODE_BTC = "DASH";
+    public static final String CODE_BTC = "PIV";
     /** Currency code for base 1/1000 Bitcoin. */
-    public static final String CODE_MBTC = "mDASH";
+    public static final String CODE_MBTC = "mPIV";
     /** Currency code for base 1/1000000 Bitcoin. */
-    public static final String CODE_UBTC = "µDASH";
+    public static final String CODE_UBTC = "µPIV";
 
     public static final int MAX_DECIMALS = 8;
 
@@ -391,7 +391,7 @@ public final class MonetaryFormat {
     }
 
     /**
-     * Parse a human readable coin value to a {@link org.bitcoinj.core.Coin} instance.
+     * Parse a human readable coin value to a {@link org.pivxj.core.Coin} instance.
      * 
      * @throws NumberFormatException
      *             if the string cannot be parsed for some reason
@@ -401,7 +401,7 @@ public final class MonetaryFormat {
     }
 
     /**
-     * Parse a human readable fiat value to a {@link org.bitcoinj.utils.Fiat} instance.
+     * Parse a human readable fiat value to a {@link org.pivxj.utils.Fiat} instance.
      * 
      * @throws NumberFormatException
      *             if the string cannot be parsed for some reason

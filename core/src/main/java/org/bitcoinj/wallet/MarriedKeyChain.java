@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.pivxj.wallet;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 
-import org.bitcoinj.core.BloomFilter;
-import org.bitcoinj.core.ECKey;
-import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.core.Utils;
-import org.bitcoinj.crypto.DeterministicKey;
-import org.bitcoinj.crypto.KeyCrypter;
-import org.bitcoinj.script.Script;
-import org.bitcoinj.script.ScriptBuilder;
+import org.pivxj.core.BloomFilter;
+import org.pivxj.core.ECKey;
+import org.pivxj.core.NetworkParameters;
+import org.pivxj.core.Utils;
+import org.pivxj.crypto.DeterministicKey;
+import org.pivxj.crypto.KeyCrypter;
+import org.pivxj.script.Script;
+import org.pivxj.script.ScriptBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.SecureRandom;
 import java.util.LinkedHashMap;
@@ -55,6 +57,9 @@ import static com.google.common.collect.Lists.newArrayList;
  * issued.</p>
  */
 public class MarriedKeyChain extends DeterministicKeyChain {
+
+    private Logger logger = LoggerFactory.getLogger(MarriedKeyChain.class);
+
     // The map holds P2SH redeem script and corresponding ECKeys issued by this KeyChainGroup (including lookahead)
     // mapped to redeem script hashes.
     private LinkedHashMap<ByteString, RedeemData> marriedKeysRedeemData = new LinkedHashMap<ByteString, RedeemData>();
@@ -80,7 +85,7 @@ public class MarriedKeyChain extends DeterministicKeyChain {
         }
 
         /**
-         * Threshold, or {@code (followingKeys.size() + 1) / 2 + 1)} (majority) if unspecified.</p>
+         * Threshold, or <code>(followingKeys.size() + 1) / 2 + 1)</code> (majority) if unspecified.</p>
          * <p>IMPORTANT: As of Bitcoin Core 0.9 all multisig transactions which require more than 3 public keys are non-standard
          * and such spends won't be processed by peers with default settings, essentially making such transactions almost
          * nonspendable</p>
@@ -153,6 +158,7 @@ public class MarriedKeyChain extends DeterministicKeyChain {
     @Override
     public Script freshOutputScript(KeyPurpose purpose) {
         DeterministicKey followedKey = getKey(purpose);
+        System.out.println("FollowedKey path: "+followedKey.getPathAsString());
         ImmutableList.Builder<ECKey> keys = ImmutableList.<ECKey>builder().add(followedKey);
         for (DeterministicKeyChain keyChain : followingKeyChains) {
             DeterministicKey followingKey = keyChain.getKey(purpose);

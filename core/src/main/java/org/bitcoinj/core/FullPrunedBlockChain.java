@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.pivxj.core;
 
-import org.bitcoinj.script.Script;
-import org.bitcoinj.script.Script.VerifyFlag;
-import org.bitcoinj.store.BlockStoreException;
-import org.bitcoinj.store.FullPrunedBlockStore;
-import org.bitcoinj.utils.*;
-import org.bitcoinj.wallet.Wallet;
+import org.pivxj.script.Script;
+import org.pivxj.script.Script.VerifyFlag;
+import org.pivxj.store.BlockStoreException;
+import org.pivxj.store.FullPrunedBlockStore;
+import org.pivxj.utils.*;
+import org.pivxj.wallet.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -207,7 +207,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
     }
 
     @Override
-    protected TransactionOutputChanges connectTransactions(int height, Block block, StoredBlock storedPrev)
+    protected TransactionOutputChanges connectTransactions(int height, Block block)
             throws VerificationException, BlockStoreException {
         checkState(lock.isHeldByCurrentThread());
         if (block.transactions == null)
@@ -271,7 +271,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
                         if (verifyFlags.contains(VerifyFlag.P2SH)) {
                             if (prevOut.getScript().isPayToScriptHash())
                                 sigOps += Script.getP2SHSigOpCount(in.getScriptBytes());
-                            if (sigOps > (height >= params.getDIP0001BlockHeight() ? Block.MAX_BLOCK_SIGOPS_DIP00001 :Block.MAX_BLOCK_SIGOPS))
+                            if (sigOps > Block.MAX_BLOCK_SIGOPS)
                                 throw new VerificationException("Too many P2SH SigOps in block");
                         }
 
@@ -313,7 +313,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
                     listScriptVerificationResults.add(future);
                 }
             }
-            if (totalFees.compareTo(params.getMaxMoney()) > 0 || block.getBlockInflation(height, storedPrev.getHeader().getDifficultyTarget(), false).add(totalFees).compareTo(coinbaseValue) < 0)
+            if (totalFees.compareTo(params.getMaxMoney()) > 0 || block.getBlockInflation(height).add(totalFees).compareTo(coinbaseValue) < 0)
                 throw new VerificationException("Transaction fees out of range");
             for (Future<VerificationException> future : listScriptVerificationResults) {
                 VerificationException e;
@@ -340,11 +340,11 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
         return new TransactionOutputChanges(txOutsCreated, txOutsSpent);
     }
 
+    @Override
     /**
      * Used during reorgs to connect a block previously on a fork
      */
-    @Override
-    protected synchronized TransactionOutputChanges connectTransactions(StoredBlock newBlock, StoredBlock storedPrev)
+    protected synchronized TransactionOutputChanges connectTransactions(StoredBlock newBlock)
             throws VerificationException, BlockStoreException, PrunedException {
         checkState(lock.isHeldByCurrentThread());
         if (!params.passesCheckpoint(newBlock.getHeight(), newBlock.getHeader().getHash()))
@@ -399,7 +399,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
                             if (verifyFlags.contains(VerifyFlag.P2SH)) {
                                 if (prevOut.getScript().isPayToScriptHash())
                                     sigOps += Script.getP2SHSigOpCount(in.getScriptBytes());
-                                if (sigOps > (newBlock.getHeight() >= params.getDIP0001BlockHeight() ? Block.MAX_BLOCK_SIGOPS_DIP00001 :Block.MAX_BLOCK_SIGOPS))
+                                if (sigOps > Block.MAX_BLOCK_SIGOPS)
                                     throw new VerificationException("Too many P2SH SigOps in block");
                             }
 
@@ -445,7 +445,7 @@ public class FullPrunedBlockChain extends AbstractBlockChain {
                     }
                 }
                 if (totalFees.compareTo(params.getMaxMoney()) > 0 ||
-                        newBlock.getHeader().getBlockInflation(newBlock.getHeight(), storedPrev.getHeader().getDifficultyTarget(), false).add(totalFees).compareTo(coinbaseValue) < 0)
+                        newBlock.getHeader().getBlockInflation(newBlock.getHeight()).add(totalFees).compareTo(coinbaseValue) < 0)
                     throw new VerificationException("Transaction fees out of range");
                 txOutChanges = new TransactionOutputChanges(txOutsCreated, txOutsSpent);
                 for (Future<VerificationException> future : listScriptVerificationResults) {

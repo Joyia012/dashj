@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.tools;
+package org.pivxj.tools;
 
-import org.bitcoinj.crypto.TrustStoreLoader;
-import org.bitcoinj.protocols.payments.PaymentProtocol;
-import org.bitcoinj.protocols.payments.PaymentProtocolException;
-import org.bitcoinj.protocols.payments.PaymentSession;
-import org.bitcoinj.uri.BitcoinURI;
-import org.bitcoinj.uri.BitcoinURIParseException;
+import org.pivxj.crypto.TrustStoreLoader;
+import org.pivxj.protocols.payments.PaymentProtocol;
+import org.pivxj.protocols.payments.PaymentProtocolException;
+import org.pivxj.protocols.payments.PaymentSession;
+import org.pivxj.uri.PivxURI;
+import org.pivxj.uri.BitcoinURIParseException;
 import org.bitcoin.protocols.payments.Protos;
 
 import java.io.FileInputStream;
@@ -58,7 +58,7 @@ public class PaymentProtocolTool {
             } else if ("http".equals(uri.getScheme())) {
                 session = PaymentSession.createFromUrl(arg).get();
             } else if ("bitcoin".equals(uri.getScheme())) {
-                BitcoinURI bcuri = new BitcoinURI(arg);
+                PivxURI bcuri = new PivxURI(arg);
                 final String paymentRequestUrl = bcuri.getPaymentRequestUrl();
                 if (paymentRequestUrl == null) {
                     System.err.println("No r= param in bitcoin URI");

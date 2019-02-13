@@ -16,14 +16,14 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.pivxj.core;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import org.bitcoinj.params.Networks;
-import org.bitcoinj.script.Script;
+import org.pivxj.params.Networks;
+import org.pivxj.script.Script;
 
 import javax.annotation.Nullable;
 

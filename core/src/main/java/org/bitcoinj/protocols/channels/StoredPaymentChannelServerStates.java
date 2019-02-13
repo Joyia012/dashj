@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.protocols.channels;
+package org.pivxj.protocols.channels;
 
 import com.google.common.collect.ImmutableMap;
-import org.bitcoinj.core.*;
-import org.bitcoinj.utils.Threading;
-import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.WalletExtension;
+import org.pivxj.core.*;
+import org.pivxj.utils.Threading;
+import org.pivxj.wallet.Wallet;
+import org.pivxj.wallet.WalletExtension;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.SettableFuture;
