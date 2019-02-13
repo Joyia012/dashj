@@ -22,6 +22,7 @@ import org.bitcoinj.core.*;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import org.bitcoinj.wallet.DeterministicKeyChain;
 import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.math.ec.ECPoint;
 
@@ -316,6 +317,7 @@ public class DeterministicKey extends ECKey {
         return super.isPubKeyOnly() && (parent == null || parent.isPubKeyOnly());
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean hasPrivKey() {
         return findParentWithPrivKey() != null;
@@ -354,13 +356,13 @@ public class DeterministicKey extends ECKey {
     public ECDSASignature sign(Sha256Hash input, @Nullable KeyParameter aesKey) throws KeyCrypterException {
         if (isEncrypted()) {
             // If the key is encrypted, ECKey.sign will decrypt it first before rerunning sign. Decryption walks the
-            // key hierarchy to find the private key (see below), so, we can just run the inherited method.
+            // key heirarchy to find the private key (see below), so, we can just run the inherited method.
             return super.sign(input, aesKey);
         } else {
             // If it's not encrypted, derive the private via the parents.
             final BigInteger privateKey = findOrDerivePrivateKey();
             if (privateKey == null) {
-                // This key is a part of a public-key only hierarchy and cannot be used for signing
+                // This key is a part of a public-key only heirarchy and cannot be used for signing
                 throw new MissingPrivateKeyException();
             }
             return super.doSign(input, privateKey);
@@ -440,9 +442,9 @@ public class DeterministicKey extends ECKey {
     }
 
     /**
-     * Derives a child at the given index using hardened derivation.  Note: {@code index} is
+     * Derives a child at the given index using hardened derivation.  Note: <code>index</code> is
      * not the "i" value.  If you want the softened derivation, then use instead
-     * {@code HDKeyDerivation.deriveChildKey(this, new ChildNumber(child, false))}.
+     * <code>HDKeyDerivation.deriveChildKey(this, new ChildNumber(child, false))</code>.
      */
     public DeterministicKey derive(int child) {
         return HDKeyDerivation.deriveChildKey(this, new ChildNumber(child, true));
@@ -503,21 +505,25 @@ public class DeterministicKey extends ECKey {
       *  @throws IllegalArgumentException if the base58 encoded key could not be parsed.
       */
     public static DeterministicKey deserializeB58(@Nullable DeterministicKey parent, String base58, NetworkParameters params) {
-        return deserialize(params, Base58.decodeChecked(base58), parent);
+        return deserialize(params, Base58.decodeChecked(base58), parent, DeterministicKeyChain.KeyChainType.BIP32);
+    }
+
+    public static DeterministicKey deserializeB58(@Nullable DeterministicKey parent, String base58, NetworkParameters params, DeterministicKeyChain.KeyChainType keyChainType) {
+        return deserialize(params, Base58.decodeChecked(base58), parent, keyChainType);
     }
 
     /**
       * Deserialize an HD Key with no parent
       */
     public static DeterministicKey deserialize(NetworkParameters params, byte[] serializedKey) {
-        return deserialize(params, serializedKey, null);
+        return deserialize(params, serializedKey, null, DeterministicKeyChain.KeyChainType.BIP32);
     }
 
     /**
       * Deserialize an HD Key.
      * @param parent The parent node in the given key's deterministic hierarchy.
      */
-    public static DeterministicKey deserialize(NetworkParameters params, byte[] serializedKey, @Nullable DeterministicKey parent) {
+    public static DeterministicKey deserialize(NetworkParameters params, byte[] serializedKey, @Nullable DeterministicKey parent, DeterministicKeyChain.KeyChainType keyChainType) {
         ByteBuffer buffer = ByteBuffer.wrap(serializedKey);
         int header = buffer.getInt();
         if (header != params.getBip32HeaderPriv() && header != params.getBip32HeaderPub())
@@ -542,7 +548,11 @@ public class DeterministicKey extends ECKey {
                 // This can happen when deserializing an account key for a watching wallet.  In this case, we assume that
                 // the client wants to conceal the key's position in the hierarchy.  The path is truncated at the
                 // parent's node.
-                path = ImmutableList.of(childNumber);
+                if (keyChainType == DeterministicKeyChain.KeyChainType.BIP44_PIVX_ONLY){
+                    // this is for bip44 only
+                    path = HDUtils.append(DeterministicKeyChain.BIP44_ACCOUNT_ZERO_PATH,childNumber);
+                }else
+                    path = ImmutableList.of(childNumber);
             else path = ImmutableList.of();
         }
         byte[] chainCode = new byte[32];
@@ -582,7 +592,7 @@ public class DeterministicKey extends ECKey {
     }
 
     /**
-     * Verifies equality of all fields but NOT the parent pointer (thus the same key derived in two separate hierarchy
+     * Verifies equality of all fields but NOT the parent pointer (thus the same key derived in two separate heirarchy
      * objects will equal each other.
      */
     @Override

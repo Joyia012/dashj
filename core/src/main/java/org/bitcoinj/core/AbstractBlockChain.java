@@ -409,7 +409,7 @@ public abstract class AbstractBlockChain {
      * @throws BlockStoreException if the block store had an underlying error.
      * @return The full set of all changes made to the set of open transaction outputs.
      */
-    protected abstract TransactionOutputChanges connectTransactions(int height, Block block, StoredBlock storedPrev) throws VerificationException, BlockStoreException;
+    protected abstract TransactionOutputChanges connectTransactions(int height, Block block) throws VerificationException, BlockStoreException;
 
     /**
      * Load newBlock from BlockStore and connect its transactions, returning changes to the set of unspent transactions.
@@ -420,7 +420,7 @@ public abstract class AbstractBlockChain {
      * @throws BlockStoreException if the block store had an underlying error or newBlock does not exist in the block store at all.
      * @return The full set of all changes made to the set of open transaction outputs.
      */
-    protected abstract TransactionOutputChanges connectTransactions(StoredBlock newBlock, StoredBlock storedPrev) throws VerificationException, BlockStoreException, PrunedException;
+    protected abstract TransactionOutputChanges connectTransactions(StoredBlock newBlock) throws VerificationException, BlockStoreException, PrunedException;    
     
     // filteredTxHashList contains all transactions, filteredTxn just a subset
     private boolean add(Block block, boolean tryConnecting,
@@ -435,6 +435,7 @@ public abstract class AbstractBlockChain {
                 return true;
             }
             if (tryConnecting && orphanBlocks.containsKey(block.getHash())) {
+                log.info("orphanBlock..");
                 return false;
             }
 
@@ -458,10 +459,18 @@ public abstract class AbstractBlockChain {
             // article here for more details: https://bitcoinj.github.io/security-model
             try {
                 block.verifyHeader();
+                //System.out.println("New block previous hash: "+block.getPrevBlockHash());
                 storedPrev = getStoredBlockInCurrentScope(block.getPrevBlockHash());
+                if (storedPrev!=null) {
+                    //System.out.println("New block, previous stored block from db: " + storedPrev.getHeader().getHashAsString());
+                    checkArgument(block.getPrevBlockHash().equals(storedPrev.getHeader().getHash()), "Database saving shit.. prev hash block: " + block.getPrevBlockHash() + ", db prev hash: " + storedPrev.getHeader().getHashAsString());
+                }
+
                 if (storedPrev != null) {
                     height = storedPrev.getHeight() + 1;
+                    //System.out.println("Adding Block: "+height+" hash "+block.getHashAsString()+", Prev block "+storedPrev.getHeight()+" hash: "+block.getPrevBlockHash().toString());
                 } else {
+                    //System.out.println("block height unknown");
                     height = Block.BLOCK_HEIGHT_UNKNOWN;
                 }
                 flags = params.getBlockVerificationFlags(block, versionTally, height);
@@ -487,7 +496,10 @@ public abstract class AbstractBlockChain {
                 checkState(lock.isHeldByCurrentThread());
                 // It connects to somewhere on the chain. Not necessarily the top of the best known chain.
                 //context.checkDifficultyTransitions(storedPrev, block, blockStore);
-                checkDifficultyTransitions(storedPrev, block);
+                //todo furszy: i'm not checking the difficulty yet
+                //todo: this should be checked on a MN wallet service.
+                //checkDifficultyTransitions(storedPrev, block);
+                //System.out.println("going to connect block with accumulator: "+block.getAccumulator().toString());
                 connectBlock(block, storedPrev, shouldVerifyTransactions(), filteredTxHashList, filteredTxn);
             }
 
@@ -535,6 +547,9 @@ public abstract class AbstractBlockChain {
         }
         
         StoredBlock head = getChainHead();
+       // System.out.println("New block: "+block.toString());
+        //System.out.println("Head height: "+head.getHeight() + " hash: "+head.getHeader().getHashAsString()
+        //        + " Previous block stored height: "+storedPrev.getHeight());
         if (storedPrev.equals(head)) {
             if (filtered && filteredTxn.size() > 0)  {
                 log.debug("Block {} connects to top of best chain with {} transaction(s) of which we were sent {}",
@@ -548,19 +563,20 @@ public abstract class AbstractBlockChain {
             // NOTE: This requires 1,000 blocks since the last checkpoint (on main
             // net, less on test) in order to be applied. It is also limited to
             // stopping addition of new v2/3 blocks to the tip of the chain.
-            if (block.getVersion() == Block.BLOCK_VERSION_BIP34
-                || block.getVersion() == Block.BLOCK_VERSION_BIP66) {
-                final Integer count = versionTally.getCountAtOrAbove(block.getVersion() + 1);
-                if (count != null
-                    && count >= params.getMajorityRejectBlockOutdated()) {
-                    throw new VerificationException.BlockVersionOutOfDate(block.getVersion());
-                }
-            }
+            // TODO: check this.
+            //if (block.getVersion() == Block.BLOCK_VERSION_BIP34
+            //    || block.getVersion() == Block.BLOCK_VERSION_BIP66) {
+            //    final Integer count = versionTally.getCountAtOrAbove(block.getVersion() + 1);
+            //    if (count != null
+            //        && count >= params.getMajorityRejectBlockOutdated()) {
+            //        throw new VerificationException.BlockVersionOutOfDate(block.getVersion());
+            //    }
+            //}
 
             // This block connects to the best known block, it is a normal continuation of the system.
             TransactionOutputChanges txOutChanges = null;
             if (shouldVerifyTransactions())
-                txOutChanges = connectTransactions(storedPrev.getHeight() + 1, block, storedPrev);
+                txOutChanges = connectTransactions(storedPrev.getHeight() + 1, block);
             StoredBlock newStoredBlock = addToBlockStore(storedPrev,
                     block.transactions == null ? block : block.cloneAsHeader(), txOutChanges);
             versionTally.add(block.getVersion());
@@ -568,6 +584,12 @@ public abstract class AbstractBlockChain {
             log.debug("Chain is now {} blocks high, running listeners", newStoredBlock.getHeight());
             informListenersForNewBlock(block, NewBlockType.BEST_CHAIN, filteredTxHashList, filteredTxn, newStoredBlock);
         } else {
+            //System.out.println("#####################");
+            //System.out.println("block not connect to the blockchain heads..");
+            //System.out.println("head chain: "+head.getHeader().getHashAsString());
+            //System.out.println("Stored block: "+storedPrev.getHeader().getHashAsString());
+            //System.out.println("New block work: "+block.getHashAsString());
+            //System.out.println("#####################");
             // This block connects to somewhere other than the top of the best known chain. We treat these differently.
             //
             // Note that we send the transactions to the wallet FIRST, even if we're about to re-organize this block
@@ -575,7 +597,8 @@ public abstract class AbstractBlockChain {
             StoredBlock newBlock = storedPrev.build(block);
             boolean haveNewBestChain = newBlock.moreWorkThan(head);
             if (haveNewBestChain) {
-                log.info("Block is causing a re-organize");
+                log.info("Block is causing a re-organize, block height: "+newBlock.getHeight()+", "
+                + " new block bits: "+newBlock.getChainWork()+" -> height: "+newBlock.getHeight()+", old block bits: "+storedPrev.getChainWork()+" -> height: "+storedPrev.getHeight());
             } else {
                 StoredBlock splitPoint = findSplit(newBlock, head, blockStore);
                 if (splitPoint != null && splitPoint.equals(newBlock)) {
@@ -756,6 +779,7 @@ public abstract class AbstractBlockChain {
         log.info("New chain head: {}", newChainHead.getHeader().getHashAsString());
         log.info("Split at block: {}", splitPoint.getHeader().getHashAsString());
         // Then build a list of all blocks in the old part of the chain and the new part.
+        //System.out.println("head work: "+head.getChainWork()+ ", splitPoint: "+splitPoint.getChainWork());
         final LinkedList<StoredBlock> oldBlocks = getPartialChain(head, splitPoint, blockStore);
         final LinkedList<StoredBlock> newBlocks = getPartialChain(newChainHead, splitPoint, blockStore);
         // Disconnect each transaction in the previous main chain that is no longer in the new main chain
@@ -781,9 +805,9 @@ public abstract class AbstractBlockChain {
                     throw new VerificationException("Block's timestamp is too early during reorg");
                 TransactionOutputChanges txOutChanges;
                 if (cursor != newChainHead || block == null)
-                    txOutChanges = connectTransactions(cursor, storedPrev);
+                    txOutChanges = connectTransactions(cursor);
                 else
-                    txOutChanges = connectTransactions(newChainHead.getHeight(), block, storedPrev);
+                    txOutChanges = connectTransactions(newChainHead.getHeight(), block);
                 storedNewHead = addToBlockStore(storedNewHead, cursorBlock.cloneAsHeader(), txOutChanges);
             }
         } else {
@@ -949,7 +973,7 @@ public abstract class AbstractBlockChain {
 
         int DiffMode = 1;
         if (params.getId().equals(NetworkParameters.ID_TESTNET)) {
-            if (storedPrev.getHeight()+1 >= 4001) { DiffMode = 4; }
+            if (storedPrev.getHeight()+1 >= 3000) { DiffMode = 4; }
         }
         else {
             if (storedPrev.getHeight()+1 >= 68589) { DiffMode = 4; }
@@ -1179,30 +1203,6 @@ public abstract class AbstractBlockChain {
             return;
         }
 
-        if(params.getId().equals(NetworkParameters.ID_TESTNET) &&
-                storedPrev.getChainWork().compareTo(new BigInteger(Utils.HEX.decode("000000000000000000000000000000000000000000000000003e9ccfe0e03e01"))) >= 0)
-        {
-            if (storedPrev.getChainWork().compareTo(new BigInteger(Utils.HEX.decode("000000000000000000000000000000000000000000000000003ff00000000000"))) >= 0) {
-                // recent block is more than 2 hours old
-                if (nextBlock.getTimeSeconds() > storedPrev.getHeader().getTimeSeconds() + 2 * 60 * 60) {
-                    verifyDifficulty(params.getMaxTarget(), storedPrev, nextBlock);
-                    return;
-                }
-                // recent block is more than 10 minutes old
-                if (nextBlock.getTimeSeconds() > storedPrev.getHeader().getTimeSeconds() + NetworkParameters.TARGET_SPACING*4) {
-                    BigInteger newTarget = storedPrev.getHeader().getDifficultyTargetAsInteger().multiply(BigInteger.valueOf(10));
-                    verifyDifficulty(newTarget, storedPrev, nextBlock);
-                    return;
-                }
-            } else {
-                // old stuff
-                if(nextBlock.getTimeSeconds() > storedPrev.getHeader().getTimeSeconds() + NetworkParameters.TARGET_SPACING*2) {
-                    verifyDifficulty(params.getMaxTarget(), storedPrev, nextBlock);
-                    return;
-                }
-            }
-        }
-
         for (int i = 1; BlockReading != null && BlockReading.getHeight() > 0; i++) {
             if (PastBlocksMax > 0 && i > PastBlocksMax) { break; }
             CountBlocks++;
@@ -1261,16 +1261,20 @@ public abstract class AbstractBlockChain {
             // TODO: Refactor this hack after 0.5 is released and we stop supporting deserialization compatibility.
             // This should be a method of the NetworkParameters, which should in turn be using singletons and a subclass
             // for each network type. Then each network can define its own difficulty transition rules.
-            if (params.getId().equals(NetworkParameters.ID_TESTNET)) {
+            if (params.getId().equals(NetworkParameters.ID_TESTNET) && nextBlock.getTime().after(testnetDiffDate)) {
                 checkTestnetDifficulty(storedPrev, prev, nextBlock);
                 return;
             }
 
             // No ... so check the difficulty didn't actually change.
-            if (nextBlock.getDifficultyTarget() != prev.getDifficultyTarget())
-                throw new VerificationException("Unexpected change in difficulty at height " + storedPrev.getHeight() +
-                        ": " + Long.toHexString(nextBlock.getDifficultyTarget()) + " vs " +
-                        Long.toHexString(prev.getDifficultyTarget()));
+            if (nextBlock.getDifficultyTarget() != prev.getDifficultyTarget()) {
+                //todo: furszy: check difficulty transition commented.
+                log.debug("Unexpected change in difficulty at height " + storedPrev.getHeight());
+                return;
+                //throw new VerificationException("Unexpected change in difficulty at height " + storedPrev.getHeight() +
+                //        ": " + Long.toHexString(nextBlock.getDifficultyTarget()) + " vs " +
+                //        Long.toHexString(prev.getDifficultyTarget()));
+            }
             return;
         }
 
@@ -1606,12 +1610,7 @@ public abstract class AbstractBlockChain {
         final long timeDelta = next.getTimeSeconds() - prev.getTimeSeconds();
         // There is an integer underflow bug in bitcoin-qt that means mindiff blocks are accepted when time
         // goes backwards.
-        if (timeDelta >= 0 && timeDelta > NetworkParameters.TARGET_SPACING * 2) {
-            if (next.getDifficultyTargetAsInteger().equals(params.getMaxTarget()))
-                return;
-            else throw new VerificationException("Unexpected change in difficulty");
-        }
-        else {
+        if (timeDelta >= 0 && timeDelta <= NetworkParameters.TARGET_SPACING * 2) {
             // Walk backwards until we find a block that doesn't have the easiest proof of work, then check
             // that difficulty is equal to that one.
             StoredBlock cursor = storedPrev;
@@ -1684,7 +1683,7 @@ public abstract class AbstractBlockChain {
         synchronized (chainHeadLock) {
             long offset = height - chainHead.getHeight();
             long headTime = chainHead.getHeader().getTimeSeconds();
-            long estimated = (headTime * 1000) + (1000L * 60L * 5L / 2L * offset);
+            long estimated = (headTime * 1000) + (1000L * 60L * 10L * offset);
             return new Date(estimated);
         }
     }

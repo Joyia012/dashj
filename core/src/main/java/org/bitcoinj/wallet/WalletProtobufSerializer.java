@@ -373,12 +373,6 @@ public class WalletProtobufSerializer {
         Date lastBroadcastedAt = confidence.getLastBroadcastedAt();
         if (lastBroadcastedAt != null)
             confidenceBuilder.setLastBroadcastedAt(lastBroadcastedAt.getTime());
-
-        confidenceBuilder.setMinConnections(confidence.getMinConnections());
-        confidenceBuilder.setPeerCount(confidence.getPeerCount());
-        Date sentAt = confidence.getSentAt();
-        if(sentAt != null)
-            confidenceBuilder.setSentTime(sentAt.getTime());
         txBuilder.setConfidence(confidenceBuilder);
     }
 
@@ -613,11 +607,7 @@ public class WalletProtobufSerializer {
     }
 
     private void readTransaction(Protos.Transaction txProto, NetworkParameters params) throws UnreadableWalletException {
-        boolean isIX = txProto.getConfidence().hasIxType() && txProto.getConfidence().getIxType() != Protos.TransactionConfidence.IXType.IX_NONE;
-        Transaction tx = !isIX ? new Transaction(params) : new TransactionLockRequest(params);
-
-        tx.setVersion(txProto.getVersion());
-
+        Transaction tx = new Transaction(params);
         if (txProto.hasUpdatedAt()) {
             tx.setUpdateTime(new Date(txProto.getUpdatedAt()));
         }
@@ -812,11 +802,6 @@ public class WalletProtobufSerializer {
             default:
                 confidence.setIXType(TransactionConfidence.IXType.IX_NONE); break;
 
-        }
-        if(confidenceProto.hasSentTime())
-            confidence.setSentTime(new Date(confidenceProto.getSentTime()));
-        if(confidenceProto.hasMinConnections()) {
-            confidence.setPeerInfo(confidenceProto.getPeerCount(), confidenceProto.getMinConnections());
         }
     }
 

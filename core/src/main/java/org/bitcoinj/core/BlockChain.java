@@ -85,6 +85,7 @@ public class BlockChain extends AbstractBlockChain {
     @Override
     protected StoredBlock addToBlockStore(StoredBlock storedPrev, Block blockHeader, TransactionOutputChanges txOutChanges)
             throws BlockStoreException, VerificationException {
+        //System.out.println("Block number: "+(storedPrev.getHeight()+1)+" work: " +blockHeader.getWork());
         StoredBlock newBlock = storedPrev.build(blockHeader);
         blockStore.put(newBlock);
         return newBlock;
@@ -129,13 +130,13 @@ public class BlockChain extends AbstractBlockChain {
     }
 
     @Override
-    protected TransactionOutputChanges connectTransactions(int height, Block block, StoredBlock storedPrev) {
+    protected TransactionOutputChanges connectTransactions(int height, Block block) {
         // Don't have to do anything as this is only called if(shouldVerifyTransactions())
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected TransactionOutputChanges connectTransactions(StoredBlock newBlock, StoredBlock storedPrev) {
+    protected TransactionOutputChanges connectTransactions(StoredBlock newBlock) {
         // Don't have to do anything as this is only called if(shouldVerifyTransactions())
         throw new UnsupportedOperationException();
     }

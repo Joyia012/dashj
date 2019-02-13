@@ -240,42 +240,43 @@ public class Wallet extends BaseTaggableObject
         this(context, new KeyChainGroup(context.getParams()));
     }
 
-    /**
-     * @param params network parameters
-     * @param seed deterministic seed
-     * @return a wallet from a deterministic seed with a
-     * {@link org.bitcoinj.wallet.DeterministicKeyChain#ACCOUNT_ZERO_PATH 0 hardened path}
-     */
+    public static Wallet fromSeed(NetworkParameters params, DeterministicSeed seed, DeterministicKeyChain.KeyChainType keyChainType) {
+        return new Wallet(params, new KeyChainGroup(params, seed,keyChainType));
+    }
+
     public static Wallet fromSeed(NetworkParameters params, DeterministicSeed seed) {
         return new Wallet(params, new KeyChainGroup(params, seed));
     }
 
     /**
-     * @param params network parameters
-     * @param seed deterministic seed
-     * @param accountPath account path
-     * @return an instance of a wallet from a deterministic seed.
-     */
-    public static Wallet fromSeed(NetworkParameters params, DeterministicSeed seed, ImmutableList<ChildNumber> accountPath) {
-        return new Wallet(params, new KeyChainGroup(params, seed, accountPath));
-    }
-
-    /**
-     * Creates a wallet that tracks payments to and from the HD key hierarchy rooted by the given watching key.
+     * Creates a wallet that tracks payments to and from the HD key hierarchy rooted by the given watching key. A
+     * watching key corresponds to account zero in the recommended BIP32 key hierarchy.
      */
     public static Wallet fromWatchingKey(NetworkParameters params, DeterministicKey watchKey) {
         return new Wallet(params, new KeyChainGroup(params, watchKey));
     }
 
+    public static Wallet fromWatchingKey(NetworkParameters params, DeterministicKey watchKey, DeterministicKeyChain.KeyChainType keyChainType) {
+        return new Wallet(params, new KeyChainGroup(params, watchKey,keyChainType));
+    }
+
     /**
-     * Creates a wallet that tracks payments to and from the HD key hierarchy rooted by the given watching key. The
-     * account path is specified. The key is specified in base58 notation and the creation time of the key. If you don't
-     * know the creation time, you can pass {@link DeterministicHierarchy#BIP32_STANDARDISATION_TIME_SECS}.
+     * Creates a wallet that tracks payments to and from the HD key hierarchy rooted by the given watching key. A
+     * watching key corresponds to account zero in the recommended BIP32 key hierarchy. The key is specified in base58
+     * notation and the creation time of the key. If you don't know the creation time, you can pass
+     * {@link DeterministicHierarchy#BIP32_STANDARDISATION_TIME_SECS}.
      */
     public static Wallet fromWatchingKeyB58(NetworkParameters params, String watchKeyB58, long creationTimeSeconds) {
         final DeterministicKey watchKey = DeterministicKey.deserializeB58(null, watchKeyB58, params);
         watchKey.setCreationTimeSeconds(creationTimeSeconds);
         return fromWatchingKey(params, watchKey);
+    }
+
+    public static Wallet fromWatchingKeyB58(NetworkParameters params, String watchKeyB58, long creationTimeSeconds, DeterministicKeyChain.KeyChainType keyChainType) {
+        DeterministicKey parent = null;
+        final DeterministicKey watchKey = DeterministicKey.deserializeB58(parent, watchKeyB58, params,keyChainType);
+        watchKey.setCreationTimeSeconds(creationTimeSeconds);
+        return fromWatchingKey(params, watchKey,keyChainType);
     }
 
     /**
@@ -305,6 +306,8 @@ public class Wallet extends BaseTaggableObject
         // we're probably being deserialized so leave things alone: the API user can upgrade later.
         if (this.keyChainGroup.numKeys() == 0)
             this.keyChainGroup.createAndActivateNewHDChain();
+        // wallet version 1 if the key chain is a bip44
+        //this.version = this.keyChainGroup.getActiveKeyChain().getKeyChainType() == DeterministicKeyChain.KeyChainType.BIP44_PIVX_ONLY? 1 : 0;
         watchedScripts = Sets.newHashSet();
         unspent = new HashMap<Sha256Hash, Transaction>();
         spent = new HashMap<Sha256Hash, Transaction>();
@@ -340,10 +343,6 @@ public class Wallet extends BaseTaggableObject
                     } finally {
                         lock.unlock();
                     }
-                } else if(reason == ChangeReason.IX_TYPE &&
-                        confidence.getIXType() == TransactionConfidence.IXType.IX_LOCKED) {
-                    //save the wallet when an InstantSend transaction is locked
-                    saveLater();
                 }
             }
         };
@@ -388,7 +387,7 @@ public class Wallet extends BaseTaggableObject
         }
     }
 
-    // ***************************************************************************************************************
+    /******************************************************************************************************************/
 
     //region Key Management
 
@@ -991,11 +990,13 @@ public class Wallet extends BaseTaggableObject
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean isPubKeyHashMine(byte[] pubkeyHash) {
         return findKeyFromPubHash(pubkeyHash) != null;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean isWatchedScript(Script script) {
         keyChainGroupLock.lock();
@@ -1021,6 +1022,7 @@ public class Wallet extends BaseTaggableObject
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean isPubKeyMine(byte[] pubkey) {
         return findKeyFromPubKey(pubkey) != null;
@@ -1041,6 +1043,7 @@ public class Wallet extends BaseTaggableObject
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean isPayToScriptHashMine(byte[] payToScriptHash) {
         return findRedeemDataFromScriptHash(payToScriptHash) != null;
@@ -1263,7 +1266,7 @@ public class Wallet extends BaseTaggableObject
 
     //endregion
 
-    // ***************************************************************************************************************
+    /******************************************************************************************************************/
 
     //region Serialization support
 
@@ -1601,7 +1604,7 @@ public class Wallet extends BaseTaggableObject
 
     //endregion
 
-    // ***************************************************************************************************************
+    /******************************************************************************************************************/
 
     //region Inbound transaction reception and processing
 
@@ -2009,7 +2012,8 @@ public class Wallet extends BaseTaggableObject
             // confidence object about the block and sets its depth appropriately.
             tx.setBlockAppearance(block, bestChain, relativityOffset);
             //added for Dash
-            if(context.instantSend != null) //Check for unit tests
+            //todo furszy: commented.
+            if (context.instantSend!=null)
                 context.instantSend.syncTransaction(tx, block);
             if (bestChain) {
                 // Don't notify this tx of work done in notifyNewBestBlock which will be called immediately after
@@ -2553,7 +2557,7 @@ public class Wallet extends BaseTaggableObject
 
     //endregion
 
-    // ***************************************************************************************************************
+    /******************************************************************************************************************/
 
     //region Event listeners
 
@@ -2855,7 +2859,7 @@ public class Wallet extends BaseTaggableObject
 
     //endregion
 
-    // ***************************************************************************************************************
+    /******************************************************************************************************************/
 
     //region Vending transactions and other internal state
 
@@ -2925,10 +2929,13 @@ public class Wallet extends BaseTaggableObject
         switch (pool) {
         case UNSPENT:
             //case INSTANTX_LOCKED:
+            if (unspent.containsKey(tx.getHash())) System.out.println("Unspent pool contains: "+tx.getHashAsString());
             checkState(unspent.put(tx.getHash(), tx) == null);
             break;
         case SPENT:
-            checkState(spent.put(tx.getHash(), tx) == null);
+            boolean b = spent.put(tx.getHash(), tx) == null;
+            log.error("### Transaction already on the SPENT pool.. "+tx.toString());
+            //checkState(spent.put(tx.getHash(), tx) == null);
             break;
         case PENDING:
         //case INSTANTX_PENDING:
@@ -3003,6 +3010,7 @@ public class Wallet extends BaseTaggableObject
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public Map<Sha256Hash, Transaction> getTransactionPool(Pool pool) {
         lock.lock();
@@ -3322,17 +3330,16 @@ public class Wallet extends BaseTaggableObject
 
         for (Transaction tx : txns) {
             try {
-                builder.append(tx.getValue(this).toFriendlyString());
-                builder.append(" total value (sends ");
+                builder.append("Sends ");
                 builder.append(tx.getValueSentFromMe(this).toFriendlyString());
                 builder.append(" and receives ");
                 builder.append(tx.getValueSentToMe(this).toFriendlyString());
-                builder.append(")\n");
+                builder.append(", total value ");
+                builder.append(tx.getValue(this).toFriendlyString());
+                builder.append(".\n");
             } catch (ScriptException e) {
                 // Ignore and don't print this line.
             }
-            if (tx.hasConfidence())
-                builder.append("  confidence: ").append(tx.getConfidence()).append('\n');
             builder.append(tx.toString(chain));
         }
     }
@@ -3492,7 +3499,7 @@ public class Wallet extends BaseTaggableObject
 
     //endregion
 
-    // ***************************************************************************************************************
+    /******************************************************************************************************************/
 
     //region Balance and balance futures
 
@@ -3734,7 +3741,7 @@ public class Wallet extends BaseTaggableObject
 
     //endregion
 
-    // ***************************************************************************************************************
+    /******************************************************************************************************************/
 
     //region Creating and sending transactions
 
@@ -3776,7 +3783,7 @@ public class Wallet extends BaseTaggableObject
      * and lets you see the proposed transaction before anything is done with it.</p>
      *
      * <p>This is a helper method that is equivalent to using {@link SendRequest#to(Address, Coin)}
-     * followed by {@link Wallet#completeTx(SendRequest)} and returning the requests transaction object.
+     * followed by {@link Wallet#completeTx(Wallet.SendRequest)} and returning the requests transaction object.
      * Note that this means a fee may be automatically added if required, if you want more control over the process,
      * just do those two steps yourself.</p>
      *
@@ -3809,7 +3816,7 @@ public class Wallet extends BaseTaggableObject
      * Sends coins to the given address but does not broadcast the resulting pending transaction. It is still stored
      * in the wallet, so when the wallet is added to a {@link PeerGroup} or {@link Peer} the transaction will be
      * announced to the network. The given {@link SendRequest} is completed first using
-     * {@link Wallet#completeTx(SendRequest)} to make it valid.
+     * {@link Wallet#completeTx(Wallet.SendRequest)} to make it valid.
      *
      * @return the Transaction that was created
      * @throws InsufficientMoneyException if the request could not be completed due to not enough balance.
@@ -3987,8 +3994,8 @@ public class Wallet extends BaseTaggableObject
                 value = value.add(output.getValue());
             }
 
-            log.info("Completing send tx with {} outputs totalling {} and a fee of {}/kB", req.tx.getOutputs().size(),
-                    value.toFriendlyString(), req.feePerKb.toFriendlyString());
+            log.info("Completing send tx with {} outputs totalling {} (not including fees)",
+                    req.tx.getOutputs().size(), value.toFriendlyString());
 
             // If any inputs have already been added, we don't need to get their value from wallet
             Coin totalInput = Coin.ZERO;
@@ -4064,6 +4071,12 @@ public class Wallet extends BaseTaggableObject
             final int size = req.tx.unsafeBitcoinSerialize().length;
             if (size > Transaction.MAX_STANDARD_TX_SIZE)
                 throw new ExceededMaxTransactionSize();
+
+            final Coin calculatedFee = req.tx.getFee();
+            if (calculatedFee != null)
+                log.info("  with a fee of {}/kB, {} for {} bytes",
+                        calculatedFee.multiply(1000).divide(size).toFriendlyString(), calculatedFee.toFriendlyString(),
+                        size);
 
             // Label the transaction as being self created. We can use this later to spend its change output even before
             // the transaction is confirmed. We deliberately won't bother notifying listeners here as there's not much
@@ -4144,8 +4157,8 @@ public class Wallet extends BaseTaggableObject
             boolean ensureMinRequiredFee, boolean useInstantSend) {
         final int size = tx.unsafeBitcoinSerialize().length + estimateBytesForSigning(coinSelection);
         Coin fee = feePerKb.multiply(size).divide(1000);
-        if (ensureMinRequiredFee && fee.compareTo(params.isDIP0001ActiveAtTip() ? Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.div(10) : Transaction.REFERENCE_DEFAULT_MIN_TX_FEE) < 0)
-            fee = params.isDIP0001ActiveAtTip() ? Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.div(10) : Transaction.REFERENCE_DEFAULT_MIN_TX_FEE;
+        if (ensureMinRequiredFee && fee.compareTo(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE) < 0)
+            fee = Transaction.REFERENCE_DEFAULT_MIN_TX_FEE;
         if(useInstantSend)
             fee = TransactionLockRequest.MIN_FEE.multiply(tx.getInputs().size());
         TransactionOutput output = tx.getOutput(0);
@@ -4363,7 +4376,8 @@ public class Wallet extends BaseTaggableObject
 
     //endregion
 
-    // ***************************************************************************************************************
+    /******************************************************************************************************************/
+
     /**
      * A custom {@link TransactionOutput} that is free standing. This contains all the information
      * required for spending without actually having all the linked data (i.e parent tx).
@@ -4413,7 +4427,10 @@ public class Wallet extends BaseTaggableObject
         }
     }
 
-    // ***************************************************************************************************************
+    /******************************************************************************************************************/
+
+
+    /******************************************************************************************************************/
 
     private static class TxOffsetPair implements Comparable<TxOffsetPair> {
         public final Transaction tx;
@@ -4765,7 +4782,7 @@ public class Wallet extends BaseTaggableObject
 
     //endregion
 
-    // ***************************************************************************************************************
+    /******************************************************************************************************************/
 
     //region Extensions to the wallet format.
 
@@ -4886,23 +4903,21 @@ public class Wallet extends BaseTaggableObject
         TransactionOutput selection2Change = null;
         CoinSelection selection1 = null;
         TransactionOutput selection1Change = null;
-        // We keep track of the last size of the transaction we calculated.
+        // We keep track of the last size of the transaction we calculated but only if the act of adding inputs and
+        // change resulted in the size crossing a 1000 byte boundary. Otherwise it stays at zero.
         int lastCalculatedSize = 0;
         int lastCalculatedInputs = 0;
         Coin valueNeeded, valueMissing = null;
-        //is DIP0001 Fee Active?
-        boolean dip0001Active = params.isDIP0001ActiveAtTip();
         while (true) {
             resetTxInputs(req, originalInputs);
 
             Coin fees = req.feePerKb.multiply(lastCalculatedSize).divide(1000);
-            if (needAtLeastReferenceFee && fees.compareTo(dip0001Active ? Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.div(10) : Transaction.REFERENCE_DEFAULT_MIN_TX_FEE) < 0)
-                fees = dip0001Active ? Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.div(10) : Transaction.REFERENCE_DEFAULT_MIN_TX_FEE;
+            if (needAtLeastReferenceFee && fees.compareTo(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE) < 0)
+                fees = Transaction.REFERENCE_DEFAULT_MIN_TX_FEE;
 
-            //Dash instantSend
+            //PIVX instantSend
             if(req.useInstantSend) {
-                Coin ixFee = dip0001Active ? TransactionLockRequest.MIN_FEE.div(10) : TransactionLockRequest.MIN_FEE;
-                fees = Coin.valueOf(max(ixFee.getValue(), ixFee.multiply(lastCalculatedInputs).getValue()));
+                fees = Coin.valueOf(max(TransactionLockRequest.MIN_FEE.getValue(), TransactionLockRequest.MIN_FEE.multiply(lastCalculatedInputs).getValue()));
             }
 
             valueNeeded = value.add(fees);
@@ -4936,12 +4951,12 @@ public class Wallet extends BaseTaggableObject
 
             // If change is < 0.01 BTC, we will need to have at least minfee to be accepted by the network
             if (req.ensureMinRequiredFee && !change.equals(Coin.ZERO) &&
-                    change.compareTo(Coin.CENT) < 0 && fees.compareTo(params.isDIP0001ActiveAtTip() ? Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.div(10) : Transaction.REFERENCE_DEFAULT_MIN_TX_FEE) < 0) {
+                    change.compareTo(Coin.CENT) < 0 && fees.compareTo(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE) < 0) {
                 // This solution may fit into category 2, but it may also be category 3, we'll check that later
                 eitherCategory2Or3 = true;
                 additionalValueForNextCategory = Coin.CENT;
                 // If the change is smaller than the fee we want to add, this will be negative
-                change = change.subtract(params.isDIP0001ActiveAtTip() ? Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.div(10) : Transaction.REFERENCE_DEFAULT_MIN_TX_FEE);
+                change = change.subtract(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.subtract(fees));
             }
 
             int size = 0;
@@ -4959,7 +4974,7 @@ public class Wallet extends BaseTaggableObject
                 if (req.ensureMinRequiredFee && changeOutput.isDust()) {
                     // This solution definitely fits in category 3
                     isCategory3 = true;
-                    additionalValueForNextCategory = (params.isDIP0001ActiveAtTip() ? Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.div(10) : Transaction.REFERENCE_DEFAULT_MIN_TX_FEE).add(
+                    additionalValueForNextCategory = Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(
                                                      changeOutput.getMinNonDustValue().add(Coin.SATOSHI));
                 } else {
                     size += changeOutput.unsafeBitcoinSerialize().length + VarInt.sizeOf(req.tx.getOutputs().size()) - VarInt.sizeOf(req.tx.getOutputs().size() - 1);
@@ -4971,7 +4986,7 @@ public class Wallet extends BaseTaggableObject
                 if (eitherCategory2Or3) {
                     // This solution definitely fits in category 3 (we threw away change because it was smaller than MIN_TX_FEE)
                     isCategory3 = true;
-                    additionalValueForNextCategory = (params.isDIP0001ActiveAtTip() ? Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.div(10) : Transaction.REFERENCE_DEFAULT_MIN_TX_FEE).add(Coin.SATOSHI);
+                    additionalValueForNextCategory = Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.add(Coin.SATOSHI);
                 }
             }
 
@@ -5090,7 +5105,7 @@ public class Wallet extends BaseTaggableObject
 
     //endregion
 
-    // ***************************************************************************************************************
+    /******************************************************************************************************************/
 
     //region Wallet maintenance transactions
 
@@ -5139,11 +5154,6 @@ public class Wallet extends BaseTaggableObject
                 //pending.remove(tx.getHash());
                 continue;
 
-            }
-            //Dash Specific
-            if(tx.getConfidence().isIX() && tx.getConfidence().getSource() == Source.SELF) {
-                //This transaction was stuck and we need to track it once again with InstantSend
-                context.instantSend.processTxLockRequest((TransactionLockRequest)tx);
             }
             checkState(confidenceType == ConfidenceType.PENDING || confidenceType == ConfidenceType.IN_CONFLICT,
                     "Expected PENDING or IN_CONFLICT, was %s.", confidenceType);
@@ -5352,30 +5362,4 @@ public class Wallet extends BaseTaggableObject
         }
     }
     //endregion
-
-    public boolean hasKeyChain(ImmutableList<ChildNumber> path)
-    {
-        boolean hasPath = false;
-        for(DeterministicKeyChain chain : keyChainGroup.getDeterministicKeyChains())
-        {
-            if(chain.getAccountPath().equals(path))
-                hasPath = true;
-        }
-        return hasPath;
-    }
-    /**
-     * Creates a new keychain and activates it using the seed of the active key chain, if the path does not exist.
-     */
-    public void addKeyChain(ImmutableList<ChildNumber> path)
-    {
-        try {
-            keyChainGroupLock.lock();
-
-            if(!hasKeyChain(path))
-                keyChainGroup.addAndActivateHDChain(new DeterministicKeyChain(getKeyChainSeed(), path));
-        }
-        finally {
-            keyChainGroupLock.unlock();
-        }
-    }
 }

@@ -135,6 +135,7 @@ public class Peer extends PeerSocketHandler {
     private final HashSet<TransactionConfidence> pendingTxDownloads = new HashSet<TransactionConfidence>();
     // The lowest version number we're willing to accept. Lower than this will result in an immediate disconnect.
     private volatile int vMinProtocolVersion;
+
     // When an API user explicitly requests a block or transaction from a peer, the InventoryItem is put here
     // whilst waiting for the response. Is not used for downloads Peer generates itself.
     private static class GetDataRequest {
@@ -462,15 +463,15 @@ public class Peer extends PeerSocketHandler {
         else
         {
             long current = Utils.currentTimeMillis();
-            dataReceived += m.getMessageSize();
+            if (m!=null) {
+                dataReceived += m.getMessageSize();
 
-            if(count % 100 == 0)
-            {
-                log.info("[bandwidth] " + (dataReceived / 1024 / 1024) + " MiB in " +(current-startTime)/1000 + " s:" + (dataReceived / 1024)/(current-startTime)*1000 + " KB/s");
+                if (count % 50 == 0) {
+                    //log.info("[bandwidth] " + (dataReceived / 1024 / 1024) + " MiB in " + (current - startTime) / 1000 + " s:" + (dataReceived / 1024) / (current - startTime) * 1000 + " KB/s , msgType: " + m.toString());
+                }
+                count++;
             }
-            count++;
         }
-
 
         // Allow event listeners to filter the message stream. Listeners are allowed to drop messages by
         // returning null.
@@ -483,6 +484,8 @@ public class Peer extends PeerSocketHandler {
             }
         }
         if (m == null) return;
+
+        //System.out.println("process message: "+m.getClass());
 
         // If we are in the middle of receiving transactions as part of a filtered block push from the remote node,
         // and we receive something that's not a transaction, then we're done.
@@ -515,11 +518,17 @@ public class Peer extends PeerSocketHandler {
             startFilteredBlock((FilteredBlock) m);
         } else if (m instanceof TransactionLockRequest) {
             //processTransactionLockRequest((TransactionLockRequest) m);
-            context.instantSend.processTxLockRequest((TransactionLockRequest)m);
+            if (context.instantSend!=null) {
+                context.instantSend.processTxLockRequest((TransactionLockRequest) m);
+            }
             processTransaction((TransactionLockRequest)m);
 
         } else if (m instanceof Transaction) {
-            processTransaction((Transaction) m);
+            try {
+                processTransaction((Transaction) m);
+            }catch (VerificationException.DuplicatedOutPoint e){
+                log.error("Duplicated output, could be a zcspend output..",e);
+            }
         } else if (m instanceof GetDataMessage) {
             processGetData((GetDataMessage) m);
         } else if (m instanceof AddressMessage) {
@@ -542,23 +551,34 @@ public class Peer extends PeerSocketHandler {
         } else if(m instanceof DarkSendQueue) {
             //do nothing
         } else if(m instanceof MasternodeBroadcast) {
-            if(!context.isLiteMode())
-                context.masternodeManager.processMasternodeBroadcast((MasternodeBroadcast)m);
-
+            if(!context.isLiteMode()) {
+                //todo: process master nodes messages
+                //context.masternodeManager.processMasternodeBroadcast((MasternodeBroadcast) m);
+            }
         }
         else if(m instanceof MasternodePing) {
-            if(!context.isLiteMode())
-                context.masternodeManager.processMasternodePing(this, (MasternodePing)m);
+            if(!context.isLiteMode()) {
+                //todo: process master nodes messages
+                //context.masternodeManager.processMasternodePing(this, (MasternodePing) m);
+            }
         }
         else if(m instanceof SporkMessage)
         {
-            context.sporkManager.processSpork(this, (SporkMessage)m);
+            // todo furszy: commented for now.
+            if (context.sporkManager!=null)
+                context.sporkManager.processSpork(this, (SporkMessage)m);
         }
         else if(m instanceof TransactionLockVote) {
-            context.instantSend.processTransactionLockVoteMessage(this, (TransactionLockVote)m);
+            // todo furszy: commented for now
+            if (context.instantSend!=null)
+                context.instantSend.processTransactionLockVoteMessage(this, (TransactionLockVote)m);
         }
         else if(m instanceof SyncStatusCount) {
-            context.masternodeSync.processSyncStatusCount(this, (SyncStatusCount)m);
+            // todo furszy: check bitcoin masternodes
+            if (context.masternodeSync!=null) {
+                //todo: process master nodes messages
+                //context.masternodeSync.processSyncStatusCount(this, (SyncStatusCount) m);
+            }
         }
         else
         {
@@ -610,13 +630,6 @@ public class Peer extends PeerSocketHandler {
                 (!params.allowEmptyPeerChain() && vPeerVersionMessage.bestHeight == 0)) {
             // Shut down the channel gracefully.
             log.info("{}: Peer does not have a copy of the block chain.", this);
-            close();
-            return;
-        }
-        if ((vPeerVersionMessage.localServices
-                & VersionMessage.NODE_BITCOIN_CASH) == VersionMessage.NODE_BITCOIN_CASH) {
-            log.info("{}: Peer follows an incompatible block chain.", this);
-            // Shut down the channel gracefully.
             close();
             return;
         }
@@ -699,9 +712,9 @@ public class Peer extends PeerSocketHandler {
     protected void processAlert(AlertMessage m) {
         try {
             if (m.isSignatureValid()) {
-                log.debug("Received alert from peer {}: {}", this, m.getStatusBar());
+                log.info("Received alert from peer {}: {}", this, m.getStatusBar());
             } else {
-                log.debug("Received alert with invalid signature from peer {}: {}", this, m.getStatusBar());
+                log.warn("Received alert with invalid signature from peer {}: {}", this, m.getStatusBar());
             }
         } catch (Throwable t) {
             // Signature checking can FAIL on Android platforms before Gingerbread apparently due to bugs in their
@@ -761,9 +774,7 @@ public class Peer extends PeerSocketHandler {
                 } else {
                     lock.lock();
                     try {
-                        log.info(
-                                "Passed the fast catchup time ({}) at height {}, discarding {} headers and requesting full blocks",
-                                Utils.dateTimeFormat(fastCatchupTimeSecs * 1000), blockChain.getBestChainHeight() + 1,
+                        log.info("Passed the fast catchup time, discarding {} headers and requesting full blocks",
                                 m.getBlockHeaders().size() - i);
                         this.downloadBlockBodies = true;
                         // Prevent this request being seen as a duplicate.
@@ -813,7 +824,12 @@ public class Peer extends PeerSocketHandler {
 
     protected void processTransaction(final Transaction tx) throws VerificationException {
         // Check a few basic syntax issues to ensure the received TX isn't nonsense.
-        tx.verify();
+        try {
+            tx.verify();
+        }catch (VerificationException.CoinbaseScriptSizeOutOfRange e){
+            log.error("CoinbaseScriptSizeOutOfRange, txId "+tx.getHashAsString(),e.getMessage());
+            return;
+        }
         lock.lock();
         try {
             log.debug("{}: Received tx {}", getAddress(), tx.getHashAsString());
@@ -827,8 +843,9 @@ public class Peer extends PeerSocketHandler {
             TransactionConfidence confidence = tx.getConfidence();
             confidence.setSource(TransactionConfidence.Source.NETWORK);
 
-            //Dash Specific
-            if(context != null && context.instantSend != null) // for unit tests that are not initialized.
+            //PIVX Specific
+            // todo furszy: commented dash instantSend for now.
+            if (context.instantSend!=null)
                 context.instantSend.syncTransaction(tx, null);
 
             pendingTxDownloads.remove(confidence);
@@ -893,9 +910,9 @@ public class Peer extends PeerSocketHandler {
                         } else {
                             wallet.receivePending(tx, null);
 
-                            if(tx instanceof TransactionLockRequest)
-                            {
-                                context.instantSend.acceptLockRequest((TransactionLockRequest)tx);
+                            if(tx instanceof TransactionLockRequest) {
+                                if (context.instantSend!=null)
+                                    context.instantSend.acceptLockRequest((TransactionLockRequest)tx);
                             }
                         }
                     }
@@ -1032,7 +1049,7 @@ public class Peer extends PeerSocketHandler {
             // Start the operation.
             sendMessage(getdata);
         } catch (Exception e) {
-            log.error("{}: Couldn't send getdata in downloadDependencies({})", this, tx.getHash(), e);
+            log.error("{}: Couldn't send getdata in downloadDependencies({})", this, tx.getHash());
             resultFuture.setException(e);
             return resultFuture;
         } finally {
@@ -1083,6 +1100,7 @@ public class Peer extends PeerSocketHandler {
                 // off a request for lots more headers in parallel.
                 lock.lock();
                 try {
+                    //todo: furszy check this please..
                     if (downloadBlockBodies) {
                         final Block orphanRoot = checkNotNull(blockChain.getOrphanRoot(m.getHash()));
                         blockChainDownloadLocked(orphanRoot.getHash());
@@ -1149,6 +1167,7 @@ public class Peer extends PeerSocketHandler {
                     awaitingFreshFilter.add(m.getHash());
                     return;   // Chain download process is restarted via a call to setBloomFilter.
                 } else if (checkForFilterExhaustion(m)) {
+                    System.out.println("#### checkForFilterExhaustion true");
                     // Yes, so we must abandon the attempt to process this block and any further blocks we receive,
                     // then wait for the Bloom filter to be recalculated, sent to this peer and for the peer to acknowledge
                     // that the new filter is now in use (which we have to simulate with a ping/pong), and then we can
@@ -1308,6 +1327,7 @@ public class Peer extends PeerSocketHandler {
         List<InventoryItem> sporks = new LinkedList<InventoryItem>();
 
         //InstantSend instantSend = InstantSend.get(blockChain);
+        log.info("inv arrived, items: "+Arrays.toString(items.toArray()));
 
         for (InventoryItem item : items) {
             switch (item.type) {
@@ -1515,6 +1535,11 @@ public class Peer extends PeerSocketHandler {
                                 getdata.addItem(item);
                             }
                             pendingBlockDownloads.add(item.hash);
+                            //System.out.println("pending blocks: "+Arrays.toString(pendingBlockDownloads.toArray()));
+                        }else {
+                            getdata.addFilteredBlock(item.hash);
+                            pingAfterGetData = true;
+                            //System.out.println("trying to continue syncing but the block is already on the pending blocks downloads list");
                         }
                     }
                 }
@@ -1529,8 +1554,11 @@ public class Peer extends PeerSocketHandler {
         }
 
         if (!getdata.getItems().isEmpty()) {
+            //System.out.println("sending getData for more blocks");
             // This will cause us to receive a bunch of block or tx messages.
             sendMessage(getdata);
+        }else {
+            //System.out.println("for some reason the getData items list is empty..");
         }
 
         if (pingAfterGetData)
@@ -1641,6 +1669,7 @@ public class Peer extends PeerSocketHandler {
 
     @GuardedBy("lock")
     private void blockChainDownloadLocked(Sha256Hash toHash) {
+        //System.out.println("### blockChainDownloadLocked");
         checkState(lock.isHeldByCurrentThread());
         // The block chain download process is a bit complicated. Basically, we start with one or more blocks in a
         // chain that we have from a previous session. We want to catch up to the head of the chain BUT we don't know

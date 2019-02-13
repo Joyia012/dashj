@@ -651,8 +651,8 @@ public class MasternodeManager extends AbstractManager {
         Masternode mnExisting = find(vin);
         if(mnExisting == null)
             return -1;
-
-        Sha256Hash hash = context.hashStore.getBlockHash(nBlockHeight);
+        // todo: hashtore bad structred in the code.
+        Sha256Hash hash = null;//context.hashStore.getBlockHash(nBlockHeight);
         if(hash == null) {
             return -2; //we don't have the block in our store
         }
@@ -752,7 +752,8 @@ public class MasternodeManager extends AbstractManager {
             //make sure we know about this block
             //uint256 hash = uint256();
             //if(!GetBlockHash(hash, nBlockHeight)) return vecMasternodeRanks;
-            Sha256Hash hash = context.hashStore.getBlockHash(nBlockHeight);
+            // todo: hashstore bad structured in the code:
+            Sha256Hash hash = null;//context.hashStore.getBlockHash(nBlockHeight);
             if (hash == null)
                 return vecMasternodeRanks;
         lock.lock();
@@ -1086,28 +1087,5 @@ public class MasternodeManager extends AbstractManager {
         }
         info = pMN.getInfo();
         return info;
-    }
-
-    public boolean poSeBan(TransactionOutPoint outPoint)
-    {
-
-        try {
-            lock.lock();
-            Masternode pmn = find(outPoint);
-            if (pmn == null) {
-                return false;
-            }
-            pmn.poSeBan();
-
-            return true;
-        }
-        finally {
-            lock.unlock();
-        }
-    }
-
-    Masternode find(TransactionOutPoint outPoint)
-    {
-        return null;
     }
 }

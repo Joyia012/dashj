@@ -94,13 +94,8 @@ public class HttpDiscovery implements PeerDiscovery {
                 throw new PeerDiscoveryException("HTTP request failed: " + response.code() + " " + response.message());
             InputStream stream = response.body().byteStream();
             GZIPInputStream zip = new GZIPInputStream(stream);
-            PeerSeedProtos.SignedPeerSeeds proto;
-            try {
-                proto = PeerSeedProtos.SignedPeerSeeds.parseDelimitedFrom(zip);
-            } finally {
-                zip.close(); // will close InputStream as well
-            }
-
+            PeerSeedProtos.SignedPeerSeeds proto = PeerSeedProtos.SignedPeerSeeds.parseDelimitedFrom(zip);
+            stream.close();
             return protoToAddrs(proto);
         } catch (PeerDiscoveryException e1) {
             throw e1;

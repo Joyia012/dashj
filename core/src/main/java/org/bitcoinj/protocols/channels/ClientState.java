@@ -15,7 +15,7 @@ public final class ClientState {
     /**
      * <code>repeated .paymentchannels.StoredClientPaymentChannel channels = 1;</code>
      */
-    java.util.List<org.bitcoinj.protocols.channels.ClientState.StoredClientPaymentChannel> 
+    java.util.List<org.bitcoinj.protocols.channels.ClientState.StoredClientPaymentChannel>
         getChannelsList();
     /**
      * <code>repeated .paymentchannels.StoredClientPaymentChannel channels = 1;</code>
@@ -28,7 +28,7 @@ public final class ClientState {
     /**
      * <code>repeated .paymentchannels.StoredClientPaymentChannel channels = 1;</code>
      */
-    java.util.List<? extends org.bitcoinj.protocols.channels.ClientState.StoredClientPaymentChannelOrBuilder> 
+    java.util.List<? extends org.bitcoinj.protocols.channels.ClientState.StoredClientPaymentChannelOrBuilder>
         getChannelsOrBuilderList();
     /**
      * <code>repeated .paymentchannels.StoredClientPaymentChannel channels = 1;</code>
@@ -153,7 +153,7 @@ public final class ClientState {
     /**
      * <code>repeated .paymentchannels.StoredClientPaymentChannel channels = 1;</code>
      */
-    public java.util.List<? extends org.bitcoinj.protocols.channels.ClientState.StoredClientPaymentChannelOrBuilder> 
+    public java.util.List<? extends org.bitcoinj.protocols.channels.ClientState.StoredClientPaymentChannelOrBuilder>
         getChannelsOrBuilderList() {
       return channels_;
     }
@@ -648,7 +648,7 @@ public final class ClientState {
       /**
        * <code>repeated .paymentchannels.StoredClientPaymentChannel channels = 1;</code>
        */
-      public java.util.List<? extends org.bitcoinj.protocols.channels.ClientState.StoredClientPaymentChannelOrBuilder> 
+      public java.util.List<? extends org.bitcoinj.protocols.channels.ClientState.StoredClientPaymentChannelOrBuilder>
            getChannelsOrBuilderList() {
         if (channelsBuilder_ != null) {
           return channelsBuilder_.getMessageOrBuilderList();
@@ -674,12 +674,12 @@ public final class ClientState {
       /**
        * <code>repeated .paymentchannels.StoredClientPaymentChannel channels = 1;</code>
        */
-      public java.util.List<org.bitcoinj.protocols.channels.ClientState.StoredClientPaymentChannel.Builder> 
+      public java.util.List<org.bitcoinj.protocols.channels.ClientState.StoredClientPaymentChannel.Builder>
            getChannelsBuilderList() {
         return getChannelsFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilder<
-          org.bitcoinj.protocols.channels.ClientState.StoredClientPaymentChannel, org.bitcoinj.protocols.channels.ClientState.StoredClientPaymentChannel.Builder, org.bitcoinj.protocols.channels.ClientState.StoredClientPaymentChannelOrBuilder> 
+          org.bitcoinj.protocols.channels.ClientState.StoredClientPaymentChannel, org.bitcoinj.protocols.channels.ClientState.StoredClientPaymentChannel.Builder, org.bitcoinj.protocols.channels.ClientState.StoredClientPaymentChannelOrBuilder>
           getChannelsFieldBuilder() {
         if (channelsBuilder_ == null) {
           channelsBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<

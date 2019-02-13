@@ -20,15 +20,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.dashj</groupId>
-        <artifactId>dashj-parent</artifactId>
-        <version>0.14.7</version>
+        <groupId>org.bitcoinj</groupId>
+        <artifactId>bitcoinj-parent</artifactId>
+        <version>0.14.3-12.1</version>
     </parent>
 
-    <artifactId>dashj-core</artifactId>
+    <artifactId>bitcoinj-core</artifactId>
 
     <name>dashj</name>
-    <description>A Java Dash library</description>
+    <description>A Java Pivx library</description>
 
     <packaging>jar</packaging>
 
@@ -320,10 +320,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
-                    <!-- First argument increases the maximum heap size, second argument disables a nasty HotSpot optimization
-                         (see http://jawspeak.com/2010/05/26/hotspot-caused-exceptions-to-lose-their-stack-traces-in-production-and-the-fix/)
-                         and last argument is required for code coverage to work. -->
-                    <argLine>-Xmx1024m -XX:-OmitStackTraceInFastThrow ${surefireArgLine}</argLine>
+                    <argLine>-Xmx1024m ${surefireArgLine}</argLine><!-- Last argument is required for code coverage to work. -->
                     <runOrder>alphabetical</runOrder>
                     <systemProperties>
                         <property>

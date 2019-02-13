@@ -22,6 +22,7 @@ import org.darkcoinj.DarkSendPool;
 import org.darkcoinj.InstantSend;
 import org.slf4j.*;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.*;
@@ -67,7 +68,7 @@ public class Context {
     public ActiveMasternode activeMasternode;
     public DarkSendPool darkSendPool;
     public InstantSend instantSend;
-    public HashStore hashStore;
+    //public HashStore hashStore;
     public MasternodeDB masternodeDB;
 
     /**
@@ -200,14 +201,14 @@ public class Context {
     }
 
     //
-    // Dash Specific
+    // Pivx Specific
     //
-    private boolean initializedDash = false;
-    public void initDash(boolean liteMode, boolean allowInstantX) {
-        this.liteMode = true;//liteMode; --TODO: currently only lite mode has been tested and works with 12.1
+
+    public void initPivx(boolean liteMode, boolean allowInstantX) {
+        this.liteMode = liteMode;
         this.allowInstantX = allowInstantX;
 
-        //Dash Specific
+        //Pivx Specific
         sporkManager = new SporkManager(this);
 
         masternodePayments = new MasternodePayments(this);
@@ -216,21 +217,6 @@ public class Context {
         darkSendPool = new DarkSendPool(this);
         instantSend = new InstantSend(this);
         masternodeManager = new MasternodeManager(this);
-        initializedDash = true;
-    }
-
-    public void closeDash() {
-        //Dash Specific
-        sporkManager = null;
-
-        masternodePayments = null;
-        masternodeSync = null;
-        activeMasternode = null;
-        darkSendPool.close();
-        darkSendPool = null;
-        instantSend = null;
-        masternodeManager = null;
-        initializedDash = false;
     }
 
     public void initDashSync(String directory)
@@ -252,22 +238,29 @@ public class Context {
         }
 
         //other functions
-        darkSendPool.startBackgroundProcessing();
+        // todo: furszy
+        //darkSendPool.startBackgroundProcessing();
     }
 
-    public void setPeerGroupAndBlockChain(PeerGroup peerGroup, AbstractBlockChain chain)
+    public void setPeerGroupAndBlockChain(PeerGroup peerGroup, @Nullable AbstractBlockChain chain)
     {
         this.peerGroup = peerGroup;
         this.blockChain = chain;
-        hashStore = new HashStore(chain.getBlockStore());
-        chain.addListener(updateHeadListener);
-        if(initializedDash) {
+        if (chain!=null) {
+            //hashStore = new HashStore(chain.getBlockStore());
+            chain.addListener(updateHeadListener);
+        }
+        //todo: furszy bitcoin init
+        if (sporkManager!=null) {
             sporkManager.setBlockChain(chain);
             masternodeManager.setBlockChain(chain);
             masternodeSync.setBlockChain(chain);
+        }else {
+            log.error("##### Pivx init not called!, this is going to be an issue in the future");
+        }
+        if (instantSend!=null) {
             instantSend.setBlockChain(chain);
         }
-        params.setDIPActiveAtTip(chain.getBestChainHeight() >= params.getDIP0001BlockHeight());
     }
 
     public boolean isLiteMode() { return liteMode; }
@@ -292,7 +285,9 @@ public class Context {
     BlockChainListener updateHeadListener = new BlockChainListener () {
         public void notifyNewBestBlock(StoredBlock block) throws VerificationException
         {
-            masternodeSync.updateBlockTip(block, false);
+            //todo furszy: commented bitcoin MN stuff
+            if (masternodeSync!=null)
+                masternodeSync.updateBlockTip(block);
         }
 
         public void reorganize(StoredBlock splitPoint, List<StoredBlock> oldBlocks,
@@ -335,8 +330,8 @@ public class Context {
 
     public void updatedChainHead(StoredBlock chainHead)
     {
-        params.setDIPActiveAtTip(chainHead.getHeight() >= params.getDIP0001BlockHeight());
-        if(initializedDash) {
+        // todo: furszy commented for now.
+        if (instantSend!=null)
             instantSend.updatedChainHead(chainHead);
 
         /*
@@ -346,6 +341,5 @@ public class Context {
         mnpayments.UpdatedBlockTip(pindex);
         governance.UpdatedBlockTip(pindex);
         masternodeSync.UpdatedBlockTip(pindex);*/
-        }
     }
 }

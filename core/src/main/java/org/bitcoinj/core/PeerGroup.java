@@ -443,7 +443,7 @@ public class PeerGroup implements TransactionBroadcaster {
         //DashSpecific
 
 
-
+        // todo: check bitcoin MN..
         context.setPeerGroupAndBlockChain(this, chain);
         vMinRequiredProtocolVersion = params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.MINIMUM);
     }
@@ -1269,10 +1269,10 @@ public class PeerGroup implements TransactionBroadcaster {
      * than the current chain head, the relevant parts of the chain won't be redownloaded for you.</p>
      *
      * <p>This method invokes {@link PeerGroup#recalculateFastCatchupAndFilter(FilterRecalculateMode)}.
-     * The return value of this method is the {@code ListenableFuture} returned by that invocation.</p>
+     * The return value of this method is the <code>ListenableFuture</code> returned by that invocation.</p>
      *
-     * @return a future that completes once each {@code Peer} in this group has had its
-     *         {@code BloomFilter} (re)set.
+     * @return a future that completes once each <code>Peer</code> in this group has had its
+     *         <code>BloomFilter</code> (re)set.
      */
     public ListenableFuture<BloomFilter> addPeerFilterProvider(PeerFilterProvider provider) {
         lock.lock();
@@ -1687,6 +1687,18 @@ public class PeerGroup implements TransactionBroadcaster {
                     for (Peer peer : getConnectedPeers()) {
                         if (peer.getPeerVersionMessage().clientVersion < params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.PONG))
                             continue;
+
+                        try {
+                            // todo: here i have to implement the GetBlock
+                            //System.out.println("Peer pings sent: " + peer.getSentPingNumber());
+                            //if (peer.getSentPingNumber() > 5) {
+                            //    if (peer.isDownloadData()) {
+                            //        peer.startBlockChainDownload();
+                            //    }
+                            //}
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
                         peer.ping();
                     }
                 } catch (Throwable e) {
@@ -2119,7 +2131,7 @@ public class PeerGroup implements TransactionBroadcaster {
                 if (max <= 1)
                     return max;
                 else
-                    return (int) Math.round(getMaxConnections() * 0.5);  //originally 0.8
+                    return (int) Math.round(getMaxConnections() * 0.8);
             }
             return minBroadcastConnections;
         } finally {
@@ -2140,12 +2152,21 @@ public class PeerGroup implements TransactionBroadcaster {
     }
 
     /**
-     * Calls {@link PeerGroup#broadcastTransaction(Transaction,int)} with getMinBroadcastConnections() as the number
+     * Calls {@link PeerGroup#broadcastTransaction(Transaction,int,boolean)} with getMinBroadcastConnections() as the number
      * of connections to wait for before commencing broadcast.
      */
     @Override
     public TransactionBroadcast broadcastTransaction(final Transaction tx) {
-        return broadcastTransaction(tx, Math.max(1, getMinBroadcastConnections()));
+        return broadcastTransaction(tx, Math.max(1, getMinBroadcastConnections()),false);
+    }
+
+    /**
+     * Calls {@link PeerGroup#broadcastTransaction(Transaction,int,boolean)} with getMinBroadcastConnections() as the number
+     * of connections to wait for before commencing broadcast.
+     */
+    @Override
+    public TransactionBroadcast broadcastTransaction(final Transaction tx,boolean isSwiftX) {
+        return broadcastTransaction(tx, Math.max(1, getMinBroadcastConnections()),isSwiftX);
     }
 
     /**
@@ -2166,15 +2187,14 @@ public class PeerGroup implements TransactionBroadcaster {
      * <p>The returned {@link org.bitcoinj.core.TransactionBroadcast} object can be used to get progress feedback,
      * which is calculated by watching the transaction propagate across the network and be announced by peers.</p>
      */
-    public TransactionBroadcast broadcastTransaction(final Transaction tx, final int minConnections) {
+    public TransactionBroadcast broadcastTransaction(final Transaction tx, final int minConnections, boolean isSwiftX) {
         // If we don't have a record of where this tx came from already, set it to be ourselves so Peer doesn't end up
         // redownloading it from the network redundantly.
         if (tx.getConfidence().getSource().equals(TransactionConfidence.Source.UNKNOWN)) {
             log.info("Transaction source unknown, setting to SELF: {}", tx.getHashAsString());
             tx.getConfidence().setSource(TransactionConfidence.Source.SELF);
         }
-        tx.getConfidence().setPeerInfo(getConnectedPeers().size(), minConnections);
-        final TransactionBroadcast broadcast = new TransactionBroadcast(this, tx);
+        final TransactionBroadcast broadcast = new TransactionBroadcast(this, tx,isSwiftX);
         broadcast.setMinConnections(minConnections);
         // Send the TX to the wallet once we have a successful broadcast.
         Futures.addCallback(broadcast.future(), new FutureCallback<Transaction>() {
@@ -2216,7 +2236,7 @@ public class PeerGroup implements TransactionBroadcaster {
     /**
      * Returns the period between pings for an individual peer. Setting this lower means more accurate and timely ping
      * times are available via {@link org.bitcoinj.core.Peer#getLastPingTime()} but it increases load on the
-     * remote node. It defaults to {@link PeerGroup#DEFAULT_PING_INTERVAL_MSEC}.
+     * remote node. It defaults to 5000.
      */
     public long getPingIntervalMsec() {
         lock.lock();
