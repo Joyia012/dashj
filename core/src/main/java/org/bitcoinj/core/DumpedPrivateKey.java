@@ -30,6 +30,7 @@ import javax.annotation.Nullable;
  * the last byte is a discriminator value for the compressed pubkey.
  */
 public class DumpedPrivateKey extends VersionedChecksummedBytes {
+    private boolean compressed;
 
     /**
      * Construct a private key from its Base58 representation.
@@ -49,6 +50,7 @@ public class DumpedPrivateKey extends VersionedChecksummedBytes {
     // Used by ECKey.getPrivateKeyEncoded()
     DumpedPrivateKey(NetworkParameters params, byte[] keyBytes, boolean compressed) {
         super(params.getDumpedPrivateKeyHeader(), encode(keyBytes, compressed));
+        this.compressed = compressed;
     }
 
     private static byte[] encode(byte[] keyBytes, boolean compressed) {
@@ -70,7 +72,12 @@ public class DumpedPrivateKey extends VersionedChecksummedBytes {
         super(encoded);
         if (params != null && version != params.getDumpedPrivateKeyHeader())
             throw new WrongNetworkException(version, new int[]{ params.getDumpedPrivateKeyHeader() });
-        if (bytes.length != 32 && bytes.length != 33) {
+        if (bytes.length == 33 && bytes[32] == 1) {
+            compressed = true;
+            bytes = Arrays.copyOf(bytes, 32);  // Chop off the additional marker byte.
+        } else if (bytes.length == 32) {
+            compressed = false;
+        } else {
             throw new AddressFormatException("Wrong number of bytes for a private key, not 32 or 33");
         }
     }
@@ -79,14 +86,8 @@ public class DumpedPrivateKey extends VersionedChecksummedBytes {
      * Returns an ECKey created from this encoded private key.
      */
     public ECKey getKey() {
-        return ECKey.fromPrivate(Arrays.copyOf(bytes, 32), isPubKeyCompressed());
-    }
-
-    /**
-     * Returns true if the public key corresponding to this private key is compressed.
-     */
-    public boolean isPubKeyCompressed() {
-        return bytes.length == 33 && bytes[32] == 1;
+        final ECKey key = ECKey.fromPrivate(bytes);
+        return compressed ? key : key.decompress();
     }
 
     @Override
@@ -94,11 +95,11 @@ public class DumpedPrivateKey extends VersionedChecksummedBytes {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         DumpedPrivateKey other = (DumpedPrivateKey) o;
-        return version == other.version && Arrays.equals(bytes, other.bytes);
+        return version == other.version && compressed == other.compressed && Arrays.equals(bytes, other.bytes);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(version, Arrays.hashCode(bytes));
+        return Objects.hashCode(version, compressed, Arrays.hashCode(bytes));
     }
 }

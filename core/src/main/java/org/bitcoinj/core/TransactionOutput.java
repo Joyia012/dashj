@@ -244,7 +244,7 @@ public class TransactionOutput extends ChildMessage {
      * {@link Transaction#MIN_NONDUST_OUTPUT}.
      */
     public Coin getMinNonDustValue() {
-        return getMinNonDustValue(params.isDIP0001ActiveAtTip() ? Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.multiply(3).div(10) : Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.multiply(3));
+        return getMinNonDustValue(Transaction.REFERENCE_DEFAULT_MIN_TX_FEE.multiply(3));
     }
 
     /**
@@ -331,7 +331,7 @@ public class TransactionOutput extends ChildMessage {
             }
         } catch (ScriptException e) {
             // Just means we didn't understand the output of this transaction: ignore it.
-            log.debug("Could not parse tx {} output script: {}", parent != null ? parent.getHash() : "(no parent)", e.toString());
+            log.debug("Could not parse tx output script: {}", e.toString());
             return false;
         }
     }

@@ -42,7 +42,7 @@ public class UnitTestParams extends AbstractBitcoinNetParams {
         genesisBlock.solve();
         port = CoinDefinition.TestPort;
         interval = 10;
-        dumpedPrivateKeyHeader = 239;
+        dumpedPrivateKeyHeader = 128 + CoinDefinition.testnetAddressHeader;
         targetTimespan = 200000000;  // 6 years. Just a very big number.
         spendableCoinbaseDepth = 5;
         subsidyDecreaseBlockCount = 100;
@@ -54,9 +54,6 @@ public class UnitTestParams extends AbstractBitcoinNetParams {
         majorityEnforceBlockUpgrade = 3;
         majorityRejectBlockOutdated = 4;
         majorityWindow = 7;
-
-        DIP0001BlockHeight = 100000;  // not active
-        strSporkAddress = "yjPtiKh2uwk3bDutTEA2q9mCtXyiZRWn55";
     }
 
     private static UnitTestParams instance;

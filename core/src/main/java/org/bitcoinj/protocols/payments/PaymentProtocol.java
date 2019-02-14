@@ -27,9 +27,6 @@ import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.bitcoin.protocols.payments.Protos;
-import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.X509Utils;
-import org.bitcoinj.script.ScriptBuilder;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;

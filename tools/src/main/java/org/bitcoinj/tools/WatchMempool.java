@@ -34,9 +34,6 @@ import org.bitcoinj.wallet.RiskAnalysis.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class WatchMempool {
     private static Logger log = LoggerFactory.getLogger(WatchMempool.class);
     private static final NetworkParameters PARAMS = MainNetParams.get();

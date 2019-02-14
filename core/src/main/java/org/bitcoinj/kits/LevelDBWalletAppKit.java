@@ -1,6 +1,5 @@
 package org.bitcoinj.kits;
 
-import org.bitcoinj.core.Context;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.BlockStoreException;

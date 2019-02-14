@@ -17,27 +17,25 @@
 
 package org.bitcoinj.params;
 
-import org.bitcoinj.core.*;
-
-import static org.bitcoinj.core.Utils.HEX;
+import org.bitcoinj.core.CoinDefinition;
 
 import java.math.BigInteger;
 import java.util.Date;
 
+import org.bitcoinj.core.Block;
+import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.StoredBlock;
+import org.bitcoinj.core.VerificationException;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.BlockStoreException;
 
 import static com.google.common.base.Preconditions.checkState;
 
 /**
- * Parameters for the testnet, a separate public instance of Dash that has relaxed rules suitable for development
- * and testing of applications and new Dash versions.
+ * Parameters for the testnet, a separate public instance of Bitcoin that has relaxed rules suitable for development
+ * and testing of applications and new Bitcoin versions.
  */
 public class TestNet3Params extends AbstractBitcoinNetParams {
-
-    public static final int TESTNET_MAJORITY_DIP0001_WINDOW = 4032;
-    public static final int TESTNET_MAJORITY_DIP0001_THRESHOLD = 3226;
-
     public TestNet3Params() {
         super();
         id = ID_TESTNET;
@@ -53,7 +51,7 @@ public class TestNet3Params extends AbstractBitcoinNetParams {
         addressHeader = CoinDefinition.testnetAddressHeader;
         p2shHeader = CoinDefinition.testnetp2shHeader;
         acceptableAddressCodes = new int[] { addressHeader, p2shHeader };
-        dumpedPrivateKeyHeader = 239;
+        dumpedPrivateKeyHeader = 239;//128 + CoinDefinition.testnetAddressHeader;
         genesisBlock.setTime(CoinDefinition.testnetGenesisBlockTime);
         genesisBlock.setDifficultyTarget(CoinDefinition.testnetGenesisBlockDifficultyTarget);
         genesisBlock.setNonce(CoinDefinition.testnetGenesisBlockNonce);
@@ -63,35 +61,18 @@ public class TestNet3Params extends AbstractBitcoinNetParams {
 
         if(CoinDefinition.supportsTestNet)
             checkState(genesisHash.equals(CoinDefinition.testnetGenesisHash));
-        alertSigningKey = HEX.decode(CoinDefinition.TESTNET_SATOSHI_KEY);
+        //todo: add alert signing key..
+        //alertSigningKey = HEX.decode(CoinDefinition.TESTNET_SATOSHI_KEY);
+
+        zerocoinStartedHeight = CoinDefinition.TESTNET_ZEROCOIN_STARTING_BLOCK_HEIGHT;
 
         dnsSeeds = CoinDefinition.testnetDnsSeeds;
 
-        checkpoints.put(    261, Sha256Hash.wrap("00000c26026d0815a7e2ce4fa270775f61403c040647ff2c3091f99e894a4618"));
-        checkpoints.put(   1999, Sha256Hash.wrap("00000052e538d27fa53693efe6fb6892a0c1d26c0235f599171c48a3cce553b1"));
-        checkpoints.put(   2999, Sha256Hash.wrap("0000024bc3f4f4cb30d29827c13d921ad77d2c6072e586c7f60d83c2722cdcc5"));
+        addrSeeds = null;
+        bip32HeaderPub =  0x3a8061a0; //0x043587cf;
+        bip32HeaderPriv = 0x3a805837;  //0x04358394 ;
 
-        addrSeeds = new int[] {
-                0xf8a7ed22,
-                0xe05dee22,
-                0x2e4de52b,
-                0x5f68202d,
-                0x1fd7202d,
-                0xe6dd202d,
-                0x4ced202d,
-                0x712e0734,
-                0x8117c934,
-                0x8e14448a,
-                0x5008e3a5,
-                0x80e5b6d9,
-                0x84e5b6d9,
-                0x86e5b6d9,
-                0x88e5b6d9
-        };
-        bip32HeaderPub = 0x043587cf;
-        bip32HeaderPriv = 0x04358394 ;
-
-        strSporkAddress = "yjPtiKh2uwk3bDutTEA2q9mCtXyiZRWn55";
+        strSporkKey = "04348C2F50F90267E64FACC65BFDC9D0EB147D090872FB97ABAE92E9A36E6CA60983E28E741F8E7277B11A7479B626AC115BA31463AC48178A5075C5A9319D4A38";
 
      //   bip32HeaderPub = 0x043587CF;
      //   bip32HeaderPriv = 0x04358394;
@@ -99,10 +80,6 @@ public class TestNet3Params extends AbstractBitcoinNetParams {
         majorityEnforceBlockUpgrade = TestNet2Params.TESTNET_MAJORITY_ENFORCE_BLOCK_UPGRADE;
         majorityRejectBlockOutdated = TestNet2Params.TESTNET_MAJORITY_REJECT_BLOCK_OUTDATED;
         majorityWindow = TestNet2Params.TESTNET_MAJORITY_WINDOW;
-
-        DIP0001Window = TESTNET_MAJORITY_DIP0001_WINDOW;
-        DIP0001Upgrade = TESTNET_MAJORITY_DIP0001_THRESHOLD;
-        DIP0001BlockHeight = 15000;
 
     }
 

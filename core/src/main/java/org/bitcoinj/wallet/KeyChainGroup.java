@@ -84,12 +84,9 @@ public class KeyChainGroup implements KeyBag {
         this(params, null, ImmutableList.of(new DeterministicKeyChain(seed)), null, null);
     }
 
-    /**
-     * Creates a keychain group with no basic chain, and an HD chain initialized from the given seed. Account path is
-     * provided.
-     */
-    public KeyChainGroup(NetworkParameters params, DeterministicSeed seed, ImmutableList<ChildNumber> accountPath) {
-        this(params, null, ImmutableList.of(new DeterministicKeyChain(seed, accountPath)), null, null);
+    /** Creates a keychain group with no basic chain, and an HD chain initialized from the given seed. */
+    public KeyChainGroup(NetworkParameters params, DeterministicSeed seed, DeterministicKeyChain.KeyChainType keyChainType) {
+        this(params, null, ImmutableList.of(new DeterministicKeyChain(seed,keyChainType)), null, null);
     }
 
     /**
@@ -98,6 +95,14 @@ public class KeyChainGroup implements KeyBag {
      */
     public KeyChainGroup(NetworkParameters params, DeterministicKey watchKey) {
         this(params, null, ImmutableList.of(DeterministicKeyChain.watch(watchKey)), null, null);
+    }
+
+    /**
+     * Creates a keychain group with no basic chain, and an HD chain that is watching the given watching key.
+     * This HAS to be an account key as returned by {@link DeterministicKeyChain#getWatchingKey()}.
+     */
+    public KeyChainGroup(NetworkParameters params, DeterministicKey watchKey,DeterministicKeyChain.KeyChainType keyChainType) {
+        this(params, null, ImmutableList.of(DeterministicKeyChain.watch(watchKey,keyChainType)), null, null);
     }
 
     // Used for deserialization.
@@ -242,7 +247,8 @@ public class KeyChainGroup implements KeyBag {
             currentAddresses.put(purpose, freshAddress);
             return freshAddress;
         } else {
-            return freshKey(purpose).toAddress(params);
+            DeterministicKey deterministicKey = freshKey(purpose);
+            return deterministicKey.toAddress(params);
         }
     }
 

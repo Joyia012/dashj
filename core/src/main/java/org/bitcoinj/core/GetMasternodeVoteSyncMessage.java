@@ -1,6 +1,5 @@
 package org.bitcoinj.core;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 

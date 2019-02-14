@@ -107,7 +107,7 @@ public class PeerAddress extends ChildMessage {
      * Bitcoin mainnet, version number is default for the given parameters.
      */
     public PeerAddress(NetworkParameters params, InetAddress addr) {
-        this(params, addr, params.getPort());
+        this(params, addr, MainNetParams.get().getPort());
     }
 
     /**

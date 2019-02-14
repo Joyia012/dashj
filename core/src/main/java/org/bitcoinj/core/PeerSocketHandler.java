@@ -18,8 +18,6 @@ package org.bitcoinj.core;
 
 import org.bitcoinj.net.AbstractTimeoutHandler;
 import org.bitcoinj.net.MessageWriteTarget;
-import org.bitcoinj.net.NioClient;
-import org.bitcoinj.net.NioClientManager;
 import org.bitcoinj.net.StreamConnection;
 import org.bitcoinj.utils.Threading;
 import com.google.common.annotations.VisibleForTesting;
@@ -39,7 +37,7 @@ import static com.google.common.base.Preconditions.*;
 
 /**
  * Handles high-level message (de)serialization for peers, acting as the bridge between the
- * {@code org.bitcoinj.net} classes and {@link Peer}.
+ * {@link org.bitcoinj.net} classes and {@link Peer}.
  */
 public abstract class PeerSocketHandler extends AbstractTimeoutHandler implements StreamConnection {
     private static final Logger log = LoggerFactory.getLogger(PeerSocketHandler.class);
@@ -57,6 +55,9 @@ public abstract class PeerSocketHandler extends AbstractTimeoutHandler implement
     private byte[] largeReadBuffer;
     private int largeReadBufferPos;
     private BitcoinSerializer.BitcoinPacketHeader header;
+
+    protected volatile int numContinuosPing = 0;
+    private Class<? extends Message> lastClassType;
 
     private Lock lock = Threading.lock("PeerSocketHandler");
 
@@ -86,6 +87,19 @@ public abstract class PeerSocketHandler extends AbstractTimeoutHandler implement
             lock.unlock();
         }
         // TODO: Some round-tripping could be avoided here
+        if (lastClassType==null){
+            lastClassType = message.getClass();
+        }
+
+        if (message instanceof Ping && lastClassType == Ping.class){
+            numContinuosPing++;
+        }else {
+            numContinuosPing = 0;
+        }
+
+        lastClassType = message.getClass();
+
+        //System.out.println("Sending msg: "+message.getClass().getCanonicalName());
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
             serializer.serialize(message, out);
@@ -93,6 +107,10 @@ public abstract class PeerSocketHandler extends AbstractTimeoutHandler implement
         } catch (IOException e) {
             exceptionCaught(e);
         }
+    }
+
+    public int getSentPingNumber() {
+        return numContinuosPing;
     }
 
     /**
@@ -192,8 +210,8 @@ public abstract class PeerSocketHandler extends AbstractTimeoutHandler implement
 
     /**
      * Sets the {@link MessageWriteTarget} used to write messages to the peer. This should almost never be called, it is
-     * called automatically by {@link NioClient} or
-     * {@link NioClientManager} once the socket finishes initialization.
+     * called automatically by {@link org.bitcoinj.net.NioClient} or
+     * {@link org.bitcoinj.net.NioClientManager} once the socket finishes initialization.
      */
     @Override
     public void setWriteTarget(MessageWriteTarget writeTarget) {
