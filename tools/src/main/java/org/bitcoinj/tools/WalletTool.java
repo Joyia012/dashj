@@ -15,25 +15,25 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.tools;
+package org.dashj.tools;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.*;
-import org.bitcoinj.net.discovery.DnsDiscovery;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.RegTestParams;
-import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.protocols.payments.PaymentProtocol;
-import org.bitcoinj.protocols.payments.PaymentProtocolException;
-import org.bitcoinj.protocols.payments.PaymentSession;
-import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.store.*;
-import org.bitcoinj.uri.BitcoinURI;
-import org.bitcoinj.uri.BitcoinURIParseException;
-import org.bitcoinj.utils.BriefLogFormatter;
-import org.bitcoinj.wallet.DeterministicSeed;
-import org.bitcoinj.wallet.DeterministicUpgradeRequiredException;
-import org.bitcoinj.wallet.DeterministicUpgradeRequiresPassword;
+import org.dashj.core.*;
+import org.dashj.crypto.*;
+import org.dashj.net.discovery.DnsDiscovery;
+import org.dashj.params.MainNetParams;
+import org.dashj.params.RegTestParams;
+import org.dashj.params.TestNet3Params;
+import org.dashj.protocols.payments.PaymentProtocol;
+import org.dashj.protocols.payments.PaymentProtocolException;
+import org.dashj.protocols.payments.PaymentSession;
+import org.dashj.script.ScriptBuilder;
+import org.dashj.store.*;
+import org.dashj.uri.PivxURI;
+import org.dashj.uri.BitcoinURIParseException;
+import org.dashj.utils.BriefLogFormatter;
+import org.dashj.wallet.DeterministicSeed;
+import org.dashj.wallet.DeterministicUpgradeRequiredException;
+import org.dashj.wallet.DeterministicUpgradeRequiresPassword;
 import com.google.common.base.Charsets;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -47,19 +47,19 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 import joptsimple.util.DateConverter;
 
-import org.bitcoinj.core.listeners.BlocksDownloadedEventListener;
-import org.bitcoinj.core.listeners.DownloadProgressTracker;
-import org.bitcoinj.wallet.MarriedKeyChain;
-import org.bitcoinj.wallet.Protos;
-import org.bitcoinj.wallet.SendRequest;
-import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.WalletExtension;
-import org.bitcoinj.wallet.WalletProtobufSerializer;
-import org.bitcoinj.wallet.Wallet.BalanceType;
-import org.bitcoinj.wallet.listeners.WalletChangeEventListener;
-import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
-import org.bitcoinj.wallet.listeners.WalletCoinsSentEventListener;
-import org.bitcoinj.wallet.listeners.WalletReorganizeEventListener;
+import org.dashj.core.listeners.BlocksDownloadedEventListener;
+import org.dashj.core.listeners.DownloadProgressTracker;
+import org.dashj.wallet.MarriedKeyChain;
+import org.dashj.wallet.Protos;
+import org.dashj.wallet.SendRequest;
+import org.dashj.wallet.Wallet;
+import org.dashj.wallet.WalletExtension;
+import org.dashj.wallet.WalletProtobufSerializer;
+import org.dashj.wallet.Wallet.BalanceType;
+import org.dashj.wallet.listeners.WalletChangeEventListener;
+import org.dashj.wallet.listeners.WalletCoinsReceivedEventListener;
+import org.dashj.wallet.listeners.WalletCoinsSentEventListener;
+import org.dashj.wallet.listeners.WalletReorganizeEventListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.params.KeyParameter;
@@ -83,7 +83,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 
-import static org.bitcoinj.core.Coin.parseCoin;
+import static org.dashj.core.Coin.parseCoin;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -1000,7 +1000,7 @@ public class WalletTool {
                 if (location.startsWith("http")) {
                     future = PaymentSession.createFromUrl(location, verifyPki);
                 } else {
-                    BitcoinURI paymentRequestURI = new BitcoinURI(location);
+                    PivxURI paymentRequestURI = new PivxURI(location);
                     future = PaymentSession.createFromBitcoinUri(paymentRequestURI, verifyPki);
                 }
                 PaymentSession session = future.get();

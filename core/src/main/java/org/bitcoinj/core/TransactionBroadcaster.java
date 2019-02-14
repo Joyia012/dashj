@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.dashj.core;
 
 /**
  * A general interface which declares the ability to broadcast transactions. This is implemented
- * by {@link org.bitcoinj.core.PeerGroup}.
+ * by {@link org.dashj.core.PeerGroup}.
  */
 public interface TransactionBroadcaster {
     /** Broadcast the given transaction on the network */
     TransactionBroadcast broadcastTransaction(final Transaction tx);
+    TransactionBroadcast broadcastTransaction(final Transaction tx,boolean isSwiftX);
 }

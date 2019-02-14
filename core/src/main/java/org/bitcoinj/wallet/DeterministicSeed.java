@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.dashj.wallet;
 
-import org.bitcoinj.core.Utils;
-import org.bitcoinj.crypto.*;
+import org.dashj.core.Utils;
+import org.dashj.crypto.*;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
@@ -27,10 +27,11 @@ import org.spongycastle.crypto.params.KeyParameter;
 
 import javax.annotation.Nullable;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.bitcoinj.core.Utils.HEX;
+import static org.dashj.core.Utils.HEX;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
@@ -59,6 +60,7 @@ public class DeterministicSeed implements EncryptableItem {
         this.mnemonicCode = checkNotNull(mnemonic);
         this.encryptedMnemonicCode = null;
         this.creationTimeSeconds = creationTimeSeconds;
+        System.out.println("seed: "+ toHexString()+"creationTime: "+creationTimeSeconds+" , mnemonic code: "+ Arrays.toString(mnemonicCode.toArray()));
     }
 
     public DeterministicSeed(EncryptedData encryptedMnemonic, @Nullable EncryptedData encryptedSeed, long creationTimeSeconds) {
@@ -70,7 +72,7 @@ public class DeterministicSeed implements EncryptableItem {
     }
 
     /**
-     * Constructs a seed from a BIP 39 mnemonic code. See {@link org.bitcoinj.crypto.MnemonicCode} for more
+     * Constructs a seed from a BIP 39 mnemonic code. See {@link org.dashj.crypto.MnemonicCode} for more
      * details on this scheme.
      * @param mnemonicCode A list of words.
      * @param seed The derived seed, or pass null to derive it from mnemonicCode (slow)
@@ -82,7 +84,7 @@ public class DeterministicSeed implements EncryptableItem {
     }
 
     /**
-     * Constructs a seed from a BIP 39 mnemonic code. See {@link org.bitcoinj.crypto.MnemonicCode} for more
+     * Constructs a seed from a BIP 39 mnemonic code. See {@link org.dashj.crypto.MnemonicCode} for more
      * details on this scheme.
      * @param random Entropy source
      * @param bits number of bits, must be divisible by 32
@@ -94,7 +96,7 @@ public class DeterministicSeed implements EncryptableItem {
     }
 
     /**
-     * Constructs a seed from a BIP 39 mnemonic code. See {@link org.bitcoinj.crypto.MnemonicCode} for more
+     * Constructs a seed from a BIP 39 mnemonic code. See {@link org.dashj.crypto.MnemonicCode} for more
      * details on this scheme.
      * @param entropy entropy bits, length must be divisible by 32
      * @param passphrase A user supplied passphrase, or an empty string if there is no passphrase
@@ -218,7 +220,7 @@ public class DeterministicSeed implements EncryptableItem {
      * Check if our mnemonic is a valid mnemonic phrase for our word list.
      * Does nothing if we are encrypted.
      *
-     * @throws org.bitcoinj.crypto.MnemonicException if check fails
+     * @throws org.dashj.crypto.MnemonicException if check fails
      */
     public void check() throws MnemonicException {
         if (mnemonicCode != null)

@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.dashj.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -92,6 +93,8 @@ public abstract class Message {
         this.payload = payload;
         this.cursor = this.offset = offset;
         this.length = length;
+
+        assert payload!=null:"Block payload null";
 
         parse();
 
@@ -328,6 +331,7 @@ public abstract class Message {
 
     protected byte[] readBytes(int length) throws ProtocolException {
         if (length > MAX_SIZE) {
+            log.info("Max size "+MAX_SIZE);
             throw new ProtocolException("Claimed value length too large: " + length);
         }
         try {
@@ -354,6 +358,13 @@ public abstract class Message {
         // We have to flip it around, as it's been read off the wire in little endian.
         // Not the most efficient way to do this but the clearest.
         return Sha256Hash.wrapReversed(readBytes(32));
+    }
+
+    protected Sha256Hash readHash(boolean zerocoin) throws ProtocolException {
+        // We have to flip it around, as it's been read off the wire in little endian.
+        // Not the most efficient way to do this but the clearest.
+        byte[] accumulator = readBytes(32);
+        return Sha256Hash.wrapReversed(accumulator);
     }
 
     protected boolean hasMoreBytes() {

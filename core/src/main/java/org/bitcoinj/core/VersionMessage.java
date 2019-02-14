@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.dashj.core;
 
 import com.google.common.base.Objects;
 import javax.annotation.Nullable;
@@ -37,12 +37,10 @@ import java.util.Locale;
  */
 public class VersionMessage extends Message {
 
-    /** A service bit that denotes whether the peer has a copy of the block chain or not. */
-    public static final int NODE_NETWORK = 1 << 0;
-    /** A service bit that denotes whether the peer supports the getutxos message or not. */
-    public static final int NODE_GETUTXOS = 1 << 1;
-    /** A service bit used by Bitcoin-ABC to announce Bitcoin Cash nodes. */
-    public static final int NODE_BITCOIN_CASH = 1 << 5;
+    /** A services flag that denotes whether the peer has a copy of the block chain or not. */
+    public static final int NODE_NETWORK = 1;
+    /** A flag that denotes whether the peer supports the getutxos message or not. */
+    public static final int NODE_GETUTXOS = 2;
 
     /**
      * The version number of the protocol spoken.
@@ -80,7 +78,7 @@ public class VersionMessage extends Message {
     public boolean relayTxesBeforeFilter;
 
     /** The version of this library release, as a string. */
-    public static final String BITCOINJ_VERSION = "0.14.7";
+    public static final String BITCOINJ_VERSION = "0.14.3-12.1";
     /** The value that is prepended to the subVer field of this application. */
     public static final String LIBRARY_SUBVER = "/"+CoinDefinition.coinName+"J:" + BITCOINJ_VERSION + "/";
 
@@ -96,7 +94,7 @@ public class VersionMessage extends Message {
     public VersionMessage(NetworkParameters params, int newBestHeight) {
         super(params);
         clientVersion = params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.CURRENT);
-        localServices = 0;
+        localServices = 1 << 4;
         time = System.currentTimeMillis() / 1000;
         // Note that the Bitcoin Core doesn't do anything with these, and finding out your own external IP address
         // is kind of tricky anyway, so we just put nonsense here for now.
@@ -242,8 +240,8 @@ public class VersionMessage extends Message {
 
     /**
      * Appends the given user-agent information to the subVer field. The subVer is composed of a series of
-     * name:version pairs separated by slashes in the form of a path. For example a typical subVer field for bitcoinj
-     * users might look like "/bitcoinj:0.13/MultiBit:1.2/" where libraries come further to the left.<p>
+     * name:version pairs separated by slashes in the form of a path. For example a typical subVer field for dashj
+     * users might look like "/dashj:0.13/MultiBit:1.2/" where libraries come further to the left.<p>
      *
      * There can be as many components as you feel a need for, and the version string can be anything, but it is
      * recommended to use A.B.C where A = major, B = minor and C = revision for software releases, and dates for
@@ -252,7 +250,7 @@ public class VersionMessage extends Message {
      *
      * Anything put in the "comments" field will appear in brackets and may be used for platform info, or anything
      * else. For example, calling <tt>appendToSubVer("MultiBit", "1.0", "Windows")</tt> will result in a subVer being
-     * set of "/bitcoinj:1.0/MultiBit:1.0(Windows)/". Therefore the / ( and ) characters are reserved in all these
+     * set of "/dashj:1.0/MultiBit:1.0(Windows)/". Therefore the / ( and ) characters are reserved in all these
      * components. If you don't want to add a comment (recommended), pass null.<p>
      *
      * See <a href="https://github.com/bitcoin/bips/blob/master/bip-0014.mediawiki">BIP 14</a> for more information.

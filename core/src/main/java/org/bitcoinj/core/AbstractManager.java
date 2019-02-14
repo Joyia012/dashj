@@ -1,4 +1,4 @@
-package org.bitcoinj.core;
+package org.dashj.core;
 
 
 import static com.google.common.base.Preconditions.checkState;

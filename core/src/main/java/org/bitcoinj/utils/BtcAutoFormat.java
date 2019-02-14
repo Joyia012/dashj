@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.utils;
+package org.dashj.utils;
 
-import static org.bitcoinj.core.Coin.SMALLEST_UNIT_EXPONENT;
+import static org.dashj.core.Coin.SMALLEST_UNIT_EXPONENT;
 import com.google.common.collect.ImmutableList;
 
 import java.math.BigInteger;
@@ -40,10 +40,10 @@ import java.util.Locale;
  * of consecutive zeros in the number that is displayed, and includes either a currency code or
  * symbol in the formatted value to indicate which denomination was chosen.
  *
- * <p>When parsing {@code String} representations of Bitcoin monetary values, instances of
+ * <p>When parsing <code>String</code> representations of Bitcoin monetary values, instances of
  * this class automatically recognize units indicators consisting of currency codes and
  * symbols, including including those containing currency or metric prefixes such as
- * {@code "¢"} or {@code "c"} to indicate hundredths, and interpret each number being
+ * <code>"¢"</code> or <code>"c"</code> to indicate hundredths, and interpret each number being
  * parsed in accordance with the recognized denominational units.
  *
  * <p>A more detailed explanation, including examples, is in the documentation for the {@link
@@ -54,7 +54,7 @@ import java.util.Locale;
  * @see          java.text.NumberFormat
  * @see          java.text.DecimalFormat
  * @see          DecimalFormatSymbols
- * @see          org.bitcoinj.core.Coin
+ * @see          org.dashj.core.Coin
  */
 
 public final class BtcAutoFormat extends BtcFormat {
@@ -171,7 +171,7 @@ public final class BtcAutoFormat extends BtcFormat {
         return places;
     }
 
-    /** Returns the {@code int} value indicating coin denomination.  This is what causes
+    /** Returns the <code>int</code> value indicating coin denomination.  This is what causes
      *  the number in a parsed value that lacks a units indicator to be interpreted as a quantity
      *  of bitcoins. */
     @Override

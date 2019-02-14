@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the bitcoinj authors
+ * Copyright 2014 the dashj authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.dashj.core;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;

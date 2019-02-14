@@ -12,11 +12,11 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.dashj.core;
 
-import org.bitcoinj.store.BlockStoreException;
-import org.bitcoinj.store.FullPrunedBlockStore;
-import org.bitcoinj.store.PostgresFullPrunedBlockStore;
+import org.dashj.store.BlockStoreException;
+import org.dashj.store.FullPrunedBlockStore;
+import org.dashj.store.PostgresFullPrunedBlockStore;
 import org.junit.After;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -28,7 +28,7 @@ import org.junit.Test;
 public class PostgresFullPrunedBlockChainTest extends AbstractFullPrunedBlockChainTest
 {
     // Replace these with your postgres location/credentials and remove @Ignore to test
-    // You can set up a fresh postgres with the command: create user bitcoinj superuser password 'password';
+    // You can set up a fresh postgres with the command: create user dashj superuser password 'password';
     private static final String DB_HOSTNAME = "localhost";
     private static final String DB_NAME = CoinDefinition.coinName.toLowerCase() + "j_test";
     private static final String DB_USERNAME = CoinDefinition.coinName.toLowerCase() +"j";

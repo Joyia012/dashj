@@ -5,8 +5,8 @@ __author__ = "richard 'ragmondo' green"
 
 import sys
 
-# Change this to point to where you have a copy of the bitcoinj.jar
-sys.path.append(r"/path/to/bitcoinj-core-0.12-bundled.jar")
+# Change this to point to where you have a copy of the dashj.jar
+sys.path.append(r"/path/to/dashj-core-0.12-bundled.jar")
 
 # This is the address to forward all payments to. Change this (unless you want to send me some testnet coins)
 my_address_text = "mzEjmna15T7DXj4HC9MBEG2UJzgFfEYtFo"
@@ -16,11 +16,11 @@ my_address_text = "mzEjmna15T7DXj4HC9MBEG2UJzgFfEYtFo"
 # if it has a confirmed balance in it, then you can set it to 0.
 confirm_wait = 1
 
-from org.bitcoinj.core import *
+from org.dashj.core import *
 
-import org.bitcoinj.crypto.KeyCrypterException
-import org.bitcoinj.params.MainNetParams
-from org.bitcoinj.kits import WalletAppKit
+import org.dashj.crypto.KeyCrypterException
+import org.dashj.params.MainNetParams
+from org.dashj.kits import WalletAppKit
 
 from com.google.common.util.concurrent import FutureCallback
 from com.google.common.util.concurrent import Futures
@@ -73,7 +73,7 @@ class SenderListener(AbstractWalletEventListener):
         Futures.addCallback(tx.getConfidence().getDepthFuture(confirm_wait), myFutureCallback())
 
 if __name__ == "__main__":
-    params = org.bitcoinj.params.TestNet3Params.get()
+    params = org.dashj.params.TestNet3Params.get()
     my_address = Address(params,my_address_text)
     filePrefix = "forwarding-service-testnet"
     f = java.io.File(".")

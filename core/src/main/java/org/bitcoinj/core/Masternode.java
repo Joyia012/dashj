@@ -1,6 +1,6 @@
-package org.bitcoinj.core;
+package org.dashj.core;
 
-import org.bitcoinj.utils.Threading;
+import org.dashj.utils.Threading;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.bitcoinj.core.MasterNodeSystem.MASTERNODE_REMOVAL_SECONDS;
+import static org.dashj.core.MasterNodeSystem.MASTERNODE_REMOVAL_SECONDS;
 
 /**
  * Created by Eric on 2/8/2015.
@@ -392,7 +392,8 @@ public class Masternode extends Message{
         //    return Sha256Hash.ZERO_HASH;
 
         //uint256 hash = 0;
-        Sha256Hash hash = context.hashStore.getBlockHash(nBlockHeight);
+        // todo: hashstore bad structured in the code.
+        Sha256Hash hash = null;//context.hashStore.getBlockHash(nBlockHeight);
         if(hash.equals(Sha256Hash.ZERO_HASH))
         {
             log.info("CalculateScore ERROR - nHeight {} - Returned 0", nBlockHeight);
@@ -665,9 +666,5 @@ public class Masternode extends Message{
         info.nProtocolVersion = protocolVersion;
         info.fInfoValid = true;
         return info;
-    }
-
-    void poSeBan() {
-
     }
 }

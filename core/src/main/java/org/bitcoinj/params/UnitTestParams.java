@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.params;
+package org.dashj.params;
 
-import org.bitcoinj.core.*;
+import org.dashj.core.*;
 
 import java.math.BigInteger;
 
 /**
- * Network parameters used by the bitcoinj unit tests (and potentially your own). This lets you solve a block using
- * {@link org.bitcoinj.core.Block#solve()} by setting difficulty to the easiest possible.
+ * Network parameters used by the dashj unit tests (and potentially your own). This lets you solve a block using
+ * {@link org.dashj.core.Block#solve()} by setting difficulty to the easiest possible.
  */
 public class UnitTestParams extends AbstractBitcoinNetParams {
     public static final int UNITNET_MAJORITY_WINDOW = 8;
@@ -42,7 +42,7 @@ public class UnitTestParams extends AbstractBitcoinNetParams {
         genesisBlock.solve();
         port = CoinDefinition.TestPort;
         interval = 10;
-        dumpedPrivateKeyHeader = 239;
+        dumpedPrivateKeyHeader = 128 + CoinDefinition.testnetAddressHeader;
         targetTimespan = 200000000;  // 6 years. Just a very big number.
         spendableCoinbaseDepth = 5;
         subsidyDecreaseBlockCount = 100;
@@ -54,9 +54,6 @@ public class UnitTestParams extends AbstractBitcoinNetParams {
         majorityEnforceBlockUpgrade = 3;
         majorityRejectBlockOutdated = 4;
         majorityWindow = 7;
-
-        DIP0001BlockHeight = 100000;  // not active
-        strSporkAddress = "yjPtiKh2uwk3bDutTEA2q9mCtXyiZRWn55";
     }
 
     private static UnitTestParams instance;

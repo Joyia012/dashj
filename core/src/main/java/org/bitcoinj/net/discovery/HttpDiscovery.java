@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.net.discovery;
+package org.dashj.net.discovery;
 
 import com.google.common.annotations.*;
 import com.google.protobuf.*;
 import com.squareup.okhttp.*;
 import org.bitcoin.crawler.*;
-import org.bitcoinj.core.*;
+import org.dashj.core.*;
 import org.slf4j.*;
 
 import javax.annotation.*;
@@ -94,13 +94,8 @@ public class HttpDiscovery implements PeerDiscovery {
                 throw new PeerDiscoveryException("HTTP request failed: " + response.code() + " " + response.message());
             InputStream stream = response.body().byteStream();
             GZIPInputStream zip = new GZIPInputStream(stream);
-            PeerSeedProtos.SignedPeerSeeds proto;
-            try {
-                proto = PeerSeedProtos.SignedPeerSeeds.parseDelimitedFrom(zip);
-            } finally {
-                zip.close(); // will close InputStream as well
-            }
-
+            PeerSeedProtos.SignedPeerSeeds proto = PeerSeedProtos.SignedPeerSeeds.parseDelimitedFrom(zip);
+            stream.close();
             return protoToAddrs(proto);
         } catch (PeerDiscoveryException e1) {
             throw e1;

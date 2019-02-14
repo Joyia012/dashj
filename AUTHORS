@@ -1,4 +1,4 @@
---------------dashj
+--------------darkcoinj
 HashEngineering <hashengineeringsolutions@gmail.com>
 
 $ git log --format='%aN' | sort -u

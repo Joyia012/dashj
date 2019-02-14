@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.crypto;
+package org.dashj.crypto;
 
 import java.util.Locale;
 
@@ -38,8 +38,6 @@ public class ChildNumber implements Comparable<ChildNumber> {
     public static final ChildNumber ZERO = new ChildNumber(0);
     public static final ChildNumber ONE = new ChildNumber(1);
     public static final ChildNumber ZERO_HARDENED = new ChildNumber(0, true);
-    public static final ChildNumber ONE_HARDENED = new ChildNumber(1, true);
-    public static final ChildNumber FIVE_HARDENED = new ChildNumber(5, true);
 
     /** Integer i as per BIP 32 spec, including the MSB denoting derivation type (0 = public, 1 = private) **/
     private final int i;

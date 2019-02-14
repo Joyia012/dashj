@@ -12,7 +12,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.store;
+package org.dashj.store;
 
 import sun.misc.*;
 import sun.nio.ch.*;

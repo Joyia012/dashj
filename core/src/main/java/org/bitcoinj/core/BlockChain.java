@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.dashj.core;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.BlockStoreException;
-import org.bitcoinj.wallet.Wallet;
+import org.dashj.store.BlockStore;
+import org.dashj.store.BlockStoreException;
+import org.dashj.wallet.Wallet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,8 +42,8 @@ public class BlockChain extends AbstractBlockChain {
      * one from scratch, or you can deserialize a saved wallet from disk using
      * {@link Wallet#loadFromFile(java.io.File, WalletExtension...)}</p>
      *
-     * <p>For the store, you should use {@link org.bitcoinj.store.SPVBlockStore} or you could also try a
-     * {@link org.bitcoinj.store.MemoryBlockStore} if you want to hold all headers in RAM and don't care about
+     * <p>For the store, you should use {@link org.dashj.store.SPVBlockStore} or you could also try a
+     * {@link org.dashj.store.MemoryBlockStore} if you want to hold all headers in RAM and don't care about
      * disk serialization (this is rare).</p>
      */
     public BlockChain(Context context, Wallet wallet, BlockStore blockStore) throws BlockStoreException {
@@ -85,6 +85,7 @@ public class BlockChain extends AbstractBlockChain {
     @Override
     protected StoredBlock addToBlockStore(StoredBlock storedPrev, Block blockHeader, TransactionOutputChanges txOutChanges)
             throws BlockStoreException, VerificationException {
+        //System.out.println("Block number: "+(storedPrev.getHeight()+1)+" work: " +blockHeader.getWork());
         StoredBlock newBlock = storedPrev.build(blockHeader);
         blockStore.put(newBlock);
         return newBlock;
@@ -129,13 +130,13 @@ public class BlockChain extends AbstractBlockChain {
     }
 
     @Override
-    protected TransactionOutputChanges connectTransactions(int height, Block block, StoredBlock storedPrev) {
+    protected TransactionOutputChanges connectTransactions(int height, Block block) {
         // Don't have to do anything as this is only called if(shouldVerifyTransactions())
         throw new UnsupportedOperationException();
     }
 
     @Override
-    protected TransactionOutputChanges connectTransactions(StoredBlock newBlock, StoredBlock storedPrev) {
+    protected TransactionOutputChanges connectTransactions(StoredBlock newBlock) {
         // Don't have to do anything as this is only called if(shouldVerifyTransactions())
         throw new UnsupportedOperationException();
     }

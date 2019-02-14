@@ -15,10 +15,11 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.dashj.core;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -27,7 +28,8 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.bitcoinj.core.Utils.*;
+import static org.dashj.core.Transaction.MAX_STANDARD_TX_SIZE;
+import static org.dashj.core.Utils.*;
 
 /**
  * <p>Methods to serialize and de-serialize messages to the Bitcoin network format as defined in
@@ -143,8 +145,8 @@ public class BitcoinSerializer extends MessageSerializer {
     public Message deserialize(ByteBuffer in) throws ProtocolException, IOException {
         // A Bitcoin protocol message has the following format.
         //
-        //   - 4 byte magic number: 0xcee2caff for the testnet or
-        //                          0xbf0c6bbd for production
+        //   - 4 byte magic number: 0xfabfb5da for the testnet or
+        //                          0xf9beb4d9 for production
         //   - 12 byte command in ASCII
         //   - 4 byte payload size
         //   - 4 byte checksum
@@ -203,7 +205,7 @@ public class BitcoinSerializer extends MessageSerializer {
 
     private Message makeMessage(String command, int length, byte[] payloadBytes, byte[] hash, byte[] checksum) throws ProtocolException {
         // We use an if ladder rather than reflection because reflection is very slow on Android.
-        Message message;
+        Message message = null;
         if (command.equals("version")) {
             return new VersionMessage(params, payloadBytes);
         } else if (command.equals("inv")) { 
@@ -219,7 +221,15 @@ public class BitcoinSerializer extends MessageSerializer {
         } else if (command.equals("getheaders")) {
             message = new GetHeadersMessage(params, payloadBytes);
         } else if (command.equals("tx")) {
-            message = makeTransaction(payloadBytes, 0, length, hash);
+            try {
+                if (payloadBytes.length > MAX_STANDARD_TX_SIZE){
+                    log.warn("Receiving huge transaction.. , payload: "+payloadBytes.length);
+                    return null;
+                }
+                message = makeTransaction(payloadBytes, 0, length, hash);
+            }catch (ScriptException e){
+                log.error("make transaction, "+ Hex.toHexString(payloadBytes),e);
+            }
         } else if (command.equals("addr")) {
             message = makeAddressMessage(payloadBytes, length);
         } else if (command.equals("ping")) {
@@ -251,7 +261,8 @@ public class BitcoinSerializer extends MessageSerializer {
         } else if (command.equals("txlvote")) {
             return new TransactionLockVote(params, payloadBytes);
         } else if (command.equals("dsq")) {
-            return new DarkSendQueue(params);
+            log.warn("darksend message arrived");
+            return new DarkSendQueue(params, payloadBytes);
         } else if (command.equals("mnb")) {
             return new MasternodeBroadcast(params, payloadBytes);
         } else if( command.equals("mnp")) {
@@ -262,13 +273,15 @@ public class BitcoinSerializer extends MessageSerializer {
             return new SyncStatusCount(params, payloadBytes);
         } else if(command.equals("sendheaders")) {
             return new SendHeadersMessage(params);
-        } else if(command.equals("sendcmpct")) {
-            return new SendCompactBlocksMessage(params);
         } else if(command.equals("getsporks")) {
             return new GetSporksMessage(params);
         }
         else if(command.equals("govsync")) {
             return new GovernanceSyncMessage(params);
+        }else if(command.equals("dseg")){
+            log.warn("dseg message arrived, No support for deserializing it {}",command);
+            //Get Masternode list or specific entry
+            return null;
         }
         else{
             log.warn("No support for deserializing message with name {}", command);

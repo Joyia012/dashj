@@ -1,12 +1,12 @@
-package org.bitcoinj.core;
+package org.dashj.core;
 
-import org.bitcoinj.script.Script;
-import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.store.BlockStore;
-import org.bitcoinj.store.BlockStoreException;
-import org.bitcoinj.utils.ListenerRegistration;
-import org.bitcoinj.utils.Pair;
-import org.bitcoinj.utils.Threading;
+import org.dashj.script.Script;
+import org.dashj.script.ScriptBuilder;
+import org.dashj.store.BlockStore;
+import org.dashj.store.BlockStoreException;
+import org.dashj.utils.ListenerRegistration;
+import org.dashj.utils.Pair;
+import org.dashj.utils.Threading;
 import org.darkcoinj.DarkSendSigner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +19,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static com.google.common.base.Preconditions.checkState;
-import static org.bitcoinj.core.MasterNodeSystem.MASTERNODE_REMOVAL_SECONDS;
+import static org.dashj.core.MasterNodeSystem.MASTERNODE_REMOVAL_SECONDS;
 
 /**
  * Created by Hash Engineering on 2/20/2016.
@@ -651,8 +651,8 @@ public class MasternodeManager extends AbstractManager {
         Masternode mnExisting = find(vin);
         if(mnExisting == null)
             return -1;
-
-        Sha256Hash hash = context.hashStore.getBlockHash(nBlockHeight);
+        // todo: hashtore bad structred in the code.
+        Sha256Hash hash = null;//context.hashStore.getBlockHash(nBlockHeight);
         if(hash == null) {
             return -2; //we don't have the block in our store
         }
@@ -752,7 +752,8 @@ public class MasternodeManager extends AbstractManager {
             //make sure we know about this block
             //uint256 hash = uint256();
             //if(!GetBlockHash(hash, nBlockHeight)) return vecMasternodeRanks;
-            Sha256Hash hash = context.hashStore.getBlockHash(nBlockHeight);
+            // todo: hashstore bad structured in the code:
+            Sha256Hash hash = null;//context.hashStore.getBlockHash(nBlockHeight);
             if (hash == null)
                 return vecMasternodeRanks;
         lock.lock();
@@ -1086,28 +1087,5 @@ public class MasternodeManager extends AbstractManager {
         }
         info = pMN.getInfo();
         return info;
-    }
-
-    public boolean poSeBan(TransactionOutPoint outPoint)
-    {
-
-        try {
-            lock.lock();
-            Masternode pmn = find(outPoint);
-            if (pmn == null) {
-                return false;
-            }
-            pmn.poSeBan();
-
-            return true;
-        }
-        finally {
-            lock.unlock();
-        }
-    }
-
-    Masternode find(TransactionOutPoint outPoint)
-    {
-        return null;
     }
 }

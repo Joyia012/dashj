@@ -15,25 +15,25 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.examples;
+package org.dashj.examples;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.KeyCrypterException;
-import org.bitcoinj.kits.LevelDBWalletAppKit;
-import org.bitcoinj.kits.WalletAppKit;
-import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.params.RegTestParams;
-import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.store.FlatDB;
-import org.bitcoinj.store.MasternodeDB;
-import org.bitcoinj.utils.BriefLogFormatter;
-import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
+import org.dashj.core.*;
+import org.dashj.crypto.KeyCrypterException;
+import org.dashj.kits.LevelDBWalletAppKit;
+import org.dashj.kits.WalletAppKit;
+import org.dashj.params.MainNetParams;
+import org.dashj.params.RegTestParams;
+import org.dashj.params.TestNet3Params;
+import org.dashj.store.FlatDB;
+import org.dashj.store.MasternodeDB;
+import org.dashj.utils.BriefLogFormatter;
+import org.dashj.wallet.Wallet;
+import org.dashj.wallet.listeners.WalletCoinsReceivedEventListener;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
-import org.bitcoinj.utils.Pair;
+import org.dashj.utils.Pair;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -91,7 +91,7 @@ public class ForwardingService {
         kit.wallet().addCoinsReceivedEventListener(new WalletCoinsReceivedEventListener() {
             @Override
             public void onCoinsReceived(Wallet w, Transaction tx, Coin prevBalance, Coin newBalance) {
-                // Runs in the dedicated "user thread" (see bitcoinj docs for more info on this).
+                // Runs in the dedicated "user thread" (see dashj docs for more info on this).
                 //
                 // The transaction "tx" can either be pending, or included into a block (we didn't see the broadcast).
                 Coin value = tx.getValueSentToMe(w);

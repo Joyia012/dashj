@@ -15,22 +15,21 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.dashj.core;
 
 import com.google.common.annotations.*;
 import com.google.common.base.*;
 import com.google.common.collect.*;
-import com.hashengineering.crypto.X11;
-import org.bitcoinj.script.*;
+import org.dashj.script.*;
 import org.slf4j.*;
-
+import com.hashengineering.crypto.Hash9;
 import javax.annotation.*;
 import java.io.*;
 import java.math.*;
 import java.util.*;
 
-import static org.bitcoinj.core.Coin.*;
-import static org.bitcoinj.core.Sha256Hash.*;
+import static org.dashj.core.Coin.*;
+import static org.dashj.core.Sha256Hash.*;
 
 //import com.sun.xml.internal.ws.api.config.management.policy.ManagedServiceAssertion;
 
@@ -47,6 +46,7 @@ import static org.bitcoinj.core.Sha256Hash.*;
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
 public class Block extends Message {
+
     /**
      * Flags used to control which elements of block validation are done on
      * received blocks.
@@ -60,23 +60,31 @@ public class Block extends Message {
 
     /** How many bytes are required to represent a block header WITHOUT the trailing 00 length byte. */
     public static final int HEADER_SIZE = 80;
+    /*** Zerocoin blocks header size */
+    public static final int ZEROCOIN_HEADER_SIZE = 112;
 
     static final long ALLOWED_TIME_DRIFT = 2 * 60 * 60; // Same value as Bitcoin Core.
+
+    /**
+     * Zerocoin block version
+     * Includes an accumulator on the block.
+     */
+    public static final long ZEROCOIN_BLOCK_VERSION = 4;
+
+    public static final boolean ACTIVATE_ZEROCOIN = true;
 
     /**
      * A constant shared by the entire network: how large in bytes a block is allowed to be. One day we may have to
      * upgrade everyone to change this, so Bitcoin can continue to grow. For now it exists as an anti-DoS measure to
      * avoid somebody creating a titanically huge but valid block and forcing everyone to download/store it forever.
      */
-    public static final int MAX_BLOCK_SIZE = 1 * 1000 * 1000;
-    public static final int MAX_BLOCK_SIZE_DIP0001 = 2 * 1000 * 1000;
+    public static final int MAX_BLOCK_SIZE = CoinDefinition.MAX_BLOCK_SIZE; //1 * 1000 * 1000;
     /**
      * A "sigop" is a signature verification operation. Because they're expensive we also impose a separate limit on
      * the number in a block to prevent somebody mining a huge block that has way more sigops than normal, so is very
      * expensive/slow to verify.
      */
     public static final int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE / 50;
-    public static final int MAX_BLOCK_SIGOPS_DIP00001 = MAX_BLOCK_SIZE_DIP0001 / 50;
 
     /** A value for difficultyTarget (nBits) that allows half of all possible hash solutions. Used in unit testing. */
     public static final long EASIEST_DIFFICULTY_TARGET = 0x207fFFFFL;
@@ -109,6 +117,11 @@ public class Block extends Message {
     /** Stores the hash of the block. If null, getHash() will recalculate it. */
     private Sha256Hash hash;
 
+    /**
+     * Zerocoin accumulator
+     */
+    private Sha256Hash zeroCoinAccumulator;
+
     protected boolean headerBytesValid;
     protected boolean transactionBytesValid;
 
@@ -122,11 +135,11 @@ public class Block extends Message {
         super(params);
         // Set up a few basic things. We are not complete after this though.
         version = setVersion;
-        difficultyTarget = 0x1e0fffffL;
+        difficultyTarget = 0x1e0ffff0L;
         time = System.currentTimeMillis() / 1000;
         prevBlockHash = Sha256Hash.ZERO_HASH;
 
-        length = HEADER_SIZE;
+        length = getHeaderSize();
     }
 
     /**
@@ -217,58 +230,13 @@ public class Block extends Message {
      * the system it was 50 coins per block, in late 2012 it went to 25 coins per block, and so on. The size of
      * a coinbase transaction is inflation plus fees.</p>
      *
-     * <p>The half-life is controlled by {@link org.bitcoinj.core.NetworkParameters#getSubsidyDecreaseBlockCount()}.
+     * <p>The half-life is controlled by {@link org.dashj.core.NetworkParameters#getSubsidyDecreaseBlockCount()}.
      * </p>
      */
 
-    public Coin getBlockInflation(int height, long nPrevBits, boolean fSuperblockPartOnly) {
+    public Coin getBlockInflation(int height) {
         //return Utils.toNanoCoins(50, 0).shiftRight(height / context.getSubsidyDecreaseBlockCount());
-        //return /*Utils.toNanoCoins(*/CoinDefinition.GetBlockReward(height)/*, 0)*/;
-        double dDiff;
-        long nSubsidyBase;
-        int nPrevHeight = height - 1;
-
-
-
-        if (nPrevHeight <= 4500 && params.getId().equals(NetworkParameters.ID_MAINNET)) {
-        /* a bug which caused diff to not be correctly calculated */
-            dDiff = (double)0x0000ffff / (double)(nPrevBits & 0x00ffffff);
-        } else {
-            dDiff = Utils.convertBitsToDouble(nPrevBits);
-        }
-
-        if (nPrevHeight < 5465) {
-            // Early ages...
-            // 1111/((x+1)^2)
-            nSubsidyBase = (long)(1111.0 / (Math.pow((dDiff+1.0),2.0)));
-            if(nSubsidyBase > 500) nSubsidyBase = 500;
-            else if(nSubsidyBase < 1) nSubsidyBase = 1;
-        } else if (nPrevHeight < 17000 || (dDiff <= 75 && nPrevHeight < 24000)) {
-            // CPU mining era
-            // 11111/(((x+51)/6)^2)
-            nSubsidyBase = (long)(11111.0 / (Math.pow((dDiff+51.0)/6.0,2.0)));
-            if(nSubsidyBase > 500) nSubsidyBase = 500;
-            else if(nSubsidyBase < 25) nSubsidyBase = 25;
-        } else {
-            // GPU/ASIC mining era
-            // 2222222/(((x+2600)/9)^2)
-            nSubsidyBase = (long)(2222222.0 / (Math.pow((dDiff+2600.0)/9.0,2.0)));
-            if(nSubsidyBase > 25) nSubsidyBase = 25;
-            else if(nSubsidyBase < 5) nSubsidyBase = 5;
-        }
-
-        // LogPrintf("height %u diff %4.2f reward %d\n", nPrevHeight, dDiff, nSubsidyBase);
-        Coin nSubsidy = Coin.valueOf(nSubsidyBase * 100000000);
-
-        // yearly decline of production by ~7.1% per year, projected ~18M coins max by year 2050+.
-        for (int i = params.getSubsidyDecreaseBlockCount(); i <= nPrevHeight; i += params.getSubsidyDecreaseBlockCount()) {
-            nSubsidy = nSubsidy.subtract(nSubsidy.div(14));
-        }
-
-        // Hard fork to reduce the block reward by 10 extra percent (allowing budget/superblocks)
-        Coin nSuperblockPart = (nPrevHeight > params.getBudgetPaymentsStartBlock()) ? nSubsidy.div(10) : Coin.ZERO;
-
-        return fSuperblockPartOnly ? nSuperblockPart : nSubsidy.minus(nSuperblockPart);
+        return /*Utils.toNanoCoins(*/CoinDefinition.GetBlockReward(height)/*, 0)*/;
     }
 
     /**
@@ -280,7 +248,7 @@ public class Block extends Message {
      */
     protected void parseTransactions(final int transactionsOffset) throws ProtocolException {
         cursor = transactionsOffset;
-        optimalEncodingMessageSize = HEADER_SIZE;
+        optimalEncodingMessageSize = getHeaderSize();
         if (payload.length == cursor) {
             // This message is just a header, it has no transactions.
             transactionBytesValid = false;
@@ -312,20 +280,50 @@ public class Block extends Message {
 
     @Override
     protected void parse() throws ProtocolException {
-        // header
-        cursor = offset;
-        version = readUint32();
-        prevBlockHash = readHash();
-        merkleRoot = readHash();
-        time = readUint32();
-        difficultyTarget = readUint32();
-        nonce = readUint32();
-        hash = Sha256Hash.wrapReversed(X11.x11Digest(payload, offset, cursor - offset));
-        headerBytesValid = serializer.isParseRetainMode();
+        try {
+            // header
+            cursor = offset;
+            version = readUint32();
+            //System.out.println("parse version: "+version);
+            prevBlockHash = readHash();
+            //System.out.println("parse prevBlockHash: "+prevBlockHash);
+            merkleRoot = readHash();
+            //System.out.println("parse merkleRoot: "+merkleRoot);
+            time = readUint32();
+            //System.out.println("parse time: "+time);
+            difficultyTarget = readUint32();
+            //System.out.println("parse difficultyTarget: "+difficultyTarget);
+            nonce = readUint32();
+            //System.out.println("parse nonce: "+nonce);
+            int headerSize = getHeaderSize();
+            if (isZerocoin() && length >= ZEROCOIN_HEADER_SIZE) {
+                // accumulator
+                zeroCoinAccumulator = readHash(true);
+                //System.out.println("parse zeroCoinAccumulator: "+zeroCoinAccumulator);
+                //System.out.println("offset: "+offset);
+                //System.out.println("cursor: "+cursor);
+                //System.out.println("payload size: "+payload.length);
+                //System.out.println("Hash payload "+Arrays.toString(copy));
+               // hash = Sha256Hash.wrapReversed(Sha256Hash.hashTwice(copy));
+               // System.out.println("zerocoin hash parsed: "+hash.toString());
+                hash = Sha256Hash.wrapReversed(Sha256Hash.hashTwice(payload, offset, cursor - offset));
+                //System.out.println("zerocoin test hash parsed 2: "+hash.toString());
 
-        // transactions
-        parseTransactions(offset + HEADER_SIZE);
-        length = cursor - offset;
+                //hash = Sha256Hash.wrapReversed(Sha256Hash.hashTwice(payload, offset, cursor - offset));
+            } else {
+                hash = Sha256Hash.wrapReversed(Hash9.digest(payload, offset, cursor - offset));
+                //System.out.println("hash parsed: "+hash.toString());
+            }
+
+            headerBytesValid = serializer.isParseRetainMode();
+
+            // transactions
+            parseTransactions(offset + headerSize);
+            length = cursor - offset;
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
     
     public int getOptimalEncodingMessageSize() {
@@ -337,18 +335,35 @@ public class Block extends Message {
 
     // default for testing
     void writeHeader(OutputStream stream) throws IOException {
+        int headerSize = getHeaderSize();
+        //System.out.println("writeHeader header size: "+headerSize);
         // try for cached write first
-        if (headerBytesValid && payload != null && payload.length >= offset + HEADER_SIZE) {
-            stream.write(payload, offset, HEADER_SIZE);
+        if (headerBytesValid && payload != null && payload.length >= offset + headerSize) {
+            stream.write(payload, offset, headerSize);
             return;
         }
         // fall back to manual write
         Utils.uint32ToByteStreamLE(version, stream);
+        //System.out.println("writeHeader version: "+version);
         stream.write(prevBlockHash.getReversedBytes());
+        //System.out.println("writeHeader prevBlockHash: "+prevBlockHash);
         stream.write(getMerkleRoot().getReversedBytes());
+        //System.out.println("writeHeader merkle root: "+getMerkleRoot());
         Utils.uint32ToByteStreamLE(time, stream);
+        //System.out.println("writeHeader time: "+time);
         Utils.uint32ToByteStreamLE(difficultyTarget, stream);
+        //System.out.println("writeHeader difficultyTarget: "+difficultyTarget);
         Utils.uint32ToByteStreamLE(nonce, stream);
+        //System.out.println("writeHeader nonce: "+nonce);
+        if (isZerocoin()){
+            byte[] accumulator = (zeroCoinAccumulator!=null)?zeroCoinAccumulator.getReversedBytes():new byte[32];
+            stream.write(accumulator);
+            //System.out.println("writeHeader zeroCoinAccumulator: "+nonce);
+        }
+    }
+
+    public int getHeaderSize(){
+        return isZerocoin()?ZEROCOIN_HEADER_SIZE:HEADER_SIZE;
     }
 
     private void writeTransactions(OutputStream stream) throws IOException {
@@ -357,10 +372,10 @@ public class Block extends Message {
         if (transactions == null) {
             return;
         }
-
+        int headerSize = getHeaderSize();
         // confirmed we must have transactions either cached or as objects.
         if (transactionBytesValid && payload != null && payload.length >= offset + length) {
-            stream.write(payload, offset + HEADER_SIZE, length - HEADER_SIZE);
+            stream.write(payload, offset + headerSize, length - headerSize);
             return;
         }
 
@@ -375,6 +390,8 @@ public class Block extends Message {
     /**
      * Special handling to check if we have a valid byte array for both header
      * and transactions
+     *
+     * @throws IOException
      */
     @Override
     public byte[] bitcoinSerialize() {
@@ -393,7 +410,7 @@ public class Block extends Message {
 
         // At least one of the two cacheable components is invalid
         // so fall back to stream write since we can't be sure of the length.
-        ByteArrayOutputStream stream = new UnsafeByteArrayOutputStream(length == UNKNOWN_LENGTH ? HEADER_SIZE + guessTransactionsLength() : length);
+        ByteArrayOutputStream stream = new UnsafeByteArrayOutputStream(length == UNKNOWN_LENGTH ? getHeaderSize() + guessTransactionsLength() : length);
         try {
             writeHeader(stream);
             writeTransactions(stream);
@@ -420,7 +437,7 @@ public class Block extends Message {
      */
     private int guessTransactionsLength() {
         if (transactionBytesValid)
-            return payload.length - HEADER_SIZE;
+            return payload.length - getHeaderSize();
         if (transactions == null)
             return 0;
         int len = VarInt.sizeOf(transactions.size());
@@ -463,9 +480,16 @@ public class Block extends Message {
      */
     private Sha256Hash calculateHash() {
         try {
-            ByteArrayOutputStream bos = new UnsafeByteArrayOutputStream(HEADER_SIZE);
+            ByteArrayOutputStream bos = new UnsafeByteArrayOutputStream(getHeaderSize());
             writeHeader(bos);
-            return Sha256Hash.wrapReversed(X11.x11Digest(bos.toByteArray()));
+            return Sha256Hash.wrap(
+                    Utils.reverseBytes(
+                            isZerocoin()?
+                                    Sha256Hash.hashTwice(bos.toByteArray())
+                                    :
+                                    Hash9.digest(bos.toByteArray())
+                            )
+                    );
         } catch (IOException e) {
             throw new RuntimeException(e); // Cannot happen.
         }
@@ -481,17 +505,51 @@ public class Block extends Message {
     }
 
 
+    public Sha256Hash getAccumulator() {
+        return zeroCoinAccumulator;
+    }
+
     /**
      * Returns the hash of the block (which for a valid, solved block should be
      * below the target). Big endian.
      */
     @Override
     public Sha256Hash getHash() {
-        if (hash == null)
+        if (hash == null) {
             hash = calculateHash();
+        }
         return hash;
     }
 
+    public boolean isZerocoin() {
+        if (!ACTIVATE_ZEROCOIN) {
+            return false;
+        }else {
+            return version == ZEROCOIN_BLOCK_VERSION;
+        }
+    }
+
+    public static boolean isZerocoinHeight(NetworkParameters networkParameters,long height) {
+        if (!ACTIVATE_ZEROCOIN) {
+            return false;
+        }else
+            return height>=networkParameters.getZerocoinStartedHeight();
+    }
+
+    public static int getHeaderSizeByVersion(long version){
+        if (!ACTIVATE_ZEROCOIN) {
+            return Block.HEADER_SIZE;
+        }else {
+            return Block.ZEROCOIN_BLOCK_VERSION == version ? ZEROCOIN_HEADER_SIZE : HEADER_SIZE;
+        }
+    }
+
+    public static int getHeaderSize(NetworkParameters params,long height){
+        if (!ACTIVATE_ZEROCOIN) {
+            return Block.HEADER_SIZE;
+        }else
+            return Block.isZerocoinHeight(params,height)?Block.ZEROCOIN_HEADER_SIZE:Block.HEADER_SIZE;
+    }
 
     /**
      * The number that is one greater than the largest representable SHA-256
@@ -527,6 +585,7 @@ public class Block extends Message {
         block.version = version;
         block.time = time;
         block.difficultyTarget = difficultyTarget;
+        block.zeroCoinAccumulator = zeroCoinAccumulator;
         block.transactions = null;
         block.hash = getHash();
     }
@@ -551,6 +610,9 @@ public class Block extends Message {
         s.append("   time: ").append(time).append(" (").append(Utils.dateTimeFormat(time * 1000)).append(")\n");
         s.append("   difficulty target (nBits): ").append(difficultyTarget).append("\n");
         s.append("   nonce: ").append(nonce).append("\n");
+        if (isZerocoin()){
+            s.append("   accumulator: ").append((zeroCoinAccumulator!=null)?zeroCoinAccumulator.toString():0).append("\n");;
+        }
         if (transactions != null && transactions.size() > 0) {
             s.append("   with ").append(transactions.size()).append(" transaction(s):\n");
             for (Transaction tx : transactions) {
@@ -608,11 +670,16 @@ public class Block extends Message {
 
         if (h.compareTo(target) > 0) {
             // Proof of work check failed!
-            if (throwException)
-                throw new VerificationException("Hash is higher than target: " + getHashAsString() + " vs "
-                        + target.toString(16));
-            else
-                return false;
+            log.debug("Hash is higher than target: " + getHashAsString() + " vs " + target.toString(16));
+            return true;
+            // todo: commented for POS implementation, i have to verify this in another way..
+            // todo: one workaround could be use a wallet service inside the master nodes.
+            //if (throwException) {
+            //    log.info("Hash is higher than target: " + getHashAsString() + " vs " + target.toString(16));
+                //throw new VerificationException("Hash is higher than target: " + getHashAsString() + " vs "
+                //        + target.toString(16));
+            //}else
+            //    return false;
         }
         return true;
     }
@@ -758,7 +825,7 @@ public class Block extends Message {
         // transactions that reference spent or non-existant inputs.
         if (transactions.isEmpty())
             throw new VerificationException("Block had no transactions");
-        if (this.getOptimalEncodingMessageSize() > (height >= params.getDIP0001BlockHeight() ? MAX_BLOCK_SIZE_DIP0001 : MAX_BLOCK_SIZE))
+        if (this.getOptimalEncodingMessageSize() > MAX_BLOCK_SIZE)
             throw new VerificationException("Block larger than MAX_BLOCK_SIZE");
         checkTransactions(height, flags);
         checkMerkleRoot();
@@ -877,7 +944,7 @@ public class Block extends Message {
      * Returns the difficulty of the proof of work that this block should meet encoded <b>in compact form</b>. The {@link
      * BlockChain} verifies that this is not too easy by looking at the length of the chain when the block is added.
      * To find the actual value the hash should be compared against, use
-     * {@link org.bitcoinj.core.Block#getDifficultyTargetAsInteger()}. Note that this is <b>not</b> the same as
+     * {@link org.dashj.core.Block#getDifficultyTargetAsInteger()}. Note that this is <b>not</b> the same as
      * the difficulty value reported by the Bitcoin "getdifficulty" RPC that you may see on various block explorers.
      * That number is the result of applying a formula to the underlying difficulty to normalize the minimum to 1.
      * Calculating the difficulty that way is currently unsupported.
@@ -1065,7 +1132,7 @@ public class Block extends Message {
      * purely a header).
      */
     public boolean hasTransactions() {
-        return (this.transactions != null) && !this.transactions.isEmpty();
+        return !this.transactions.isEmpty();
     }
 
     /**

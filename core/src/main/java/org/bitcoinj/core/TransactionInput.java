@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.dashj.core;
 
-import org.bitcoinj.script.Script;
-import org.bitcoinj.wallet.DefaultRiskAnalysis;
-import org.bitcoinj.wallet.KeyBag;
-import org.bitcoinj.wallet.RedeemData;
+import org.dashj.script.Script;
+import org.dashj.wallet.DefaultRiskAnalysis;
+import org.dashj.wallet.KeyBag;
+import org.dashj.wallet.RedeemData;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
@@ -46,11 +46,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class TransactionInput extends ChildMessage {
     /** Magic sequence number that indicates there is no sequence number. */
     public static final long NO_SEQUENCE = 0xFFFFFFFFL;
-    /**
-     * BIP68: If this flag set, sequence is NOT interpreted as a relative lock-time.
-     */
-    public static final long SEQUENCE_LOCKTIME_DISABLE_FLAG = 1L << 31;
-
     private static final byte[] EMPTY_ARRAY = new byte[0];
     // Magic outpoint index that indicates the input is in fact unconnected.
     private static final long UNCONNECTED = 0xFFFFFFFFL;
@@ -306,7 +301,7 @@ public class TransactionInput extends ChildMessage {
 
     /**
      * Alias for getOutpoint().getConnectedRedeemData(keyBag)
-     * @see TransactionOutPoint#getConnectedRedeemData(org.bitcoinj.wallet.KeyBag)
+     * @see TransactionOutPoint#getConnectedRedeemData(org.dashj.wallet.KeyBag)
      */
     @Nullable
     public RedeemData getConnectedRedeemData(KeyBag keyBag) throws ScriptException {
@@ -398,11 +393,11 @@ public class TransactionInput extends ChildMessage {
     }
 
     /**
-     * Returns whether this input, if it belongs to a version 2 (or higher) transaction, has
-     * <a href="https://github.com/bitcoin/bips/blob/master/bip-0068.mediawiki">relative lock-time</a> enabled.
+     * Returns whether this input will cause a transaction to opt into the
+     * <a href="https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki">full replace-by-fee </a> semantics.
      */
-    public boolean hasRelativeLockTime() {
-        return (sequence & SEQUENCE_LOCKTIME_DISABLE_FLAG) == 0;
+    public boolean isOptInFullRBF() {
+        return sequence < NO_SEQUENCE - 1;
     }
 
     /**
@@ -499,8 +494,11 @@ public class TransactionInput extends ChildMessage {
                 s.append(": COINBASE");
             } else {
                 s.append(" for [").append(outpoint).append("]: ").append(getScriptSig());
-                if (hasSequence())
-                    s.append(" (sequence: ").append(Long.toHexString(sequence)).append(")");
+                String flags = Joiner.on(", ").skipNulls().join(
+                        hasSequence() ? "sequence: " + Long.toHexString(sequence) : null,
+                        isOptInFullRBF() ? "opts into full RBF" : null);
+                if (!flags.isEmpty())
+                    s.append(" (").append(flags).append(')');
             }
             return s.toString();
         } catch (ScriptException e) {

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.dashj.core;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -47,7 +47,7 @@ import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterrup
 
 /**
  * A collection of various utility methods that are helpful for working with the Bitcoin protocol.
- * To enable debug logging from the library, run with -Dbitcoinj.logging=true on your command line.
+ * To enable debug logging from the library, run with -Ddashj.logging=true on your command line.
  */
 public class Utils {
 
@@ -727,24 +727,5 @@ public class Utils {
 
         // TODO: this should include the 7.1% decline too
         return nTotalCoins;
-    }
-    static double convertBitsToDouble(long nBits){
-        long nShift = (nBits >> 24) & 0xff;
-
-        double dDiff =
-                (double)0x0000ffff / (double)(nBits & 0x00ffffff);
-
-        while (nShift < 29)
-        {
-            dDiff *= 256.0;
-            nShift++;
-        }
-        while (nShift > 29)
-        {
-            dDiff /= 256.0;
-            nShift--;
-        }
-
-        return dDiff;
     }
 }

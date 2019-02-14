@@ -12,16 +12,16 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.examples;
+package org.dashj.examples;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import org.bitcoinj.core.*;
-import org.bitcoinj.kits.WalletAppKit;
-import org.bitcoinj.params.TestNet3Params;
-import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.Wallet.BalanceType;
+import org.dashj.core.*;
+import org.dashj.kits.WalletAppKit;
+import org.dashj.params.TestNet3Params;
+import org.dashj.wallet.Wallet;
+import org.dashj.wallet.Wallet.BalanceType;
 
 import java.io.File;
 
@@ -50,7 +50,7 @@ public class SendRequest {
         System.out.println("Send money to: " + to.toString());
 
         // There are different ways to create and publish a SendRequest. This is probably the easiest one.
-        // Have a look at the code of the SendRequest class to see what's happening and what other options you have: https://bitcoinj.github.io/javadoc/0.11/com/google/bitcoin/core/Wallet.SendRequest.html
+        // Have a look at the code of the SendRequest class to see what's happening and what other options you have: https://dashj.github.io/javadoc/0.11/com/google/bitcoin/core/Wallet.SendRequest.html
         // 
         // Please note that this might raise a InsufficientMoneyException if your wallet has not enough coins to spend.
         // When using the testnet you can use a faucet (like the http://faucet.xeno-genesis.com/) to get testnet coins.

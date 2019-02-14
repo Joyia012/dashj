@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 The bitcoinj team
+ * Copyright 2014 The dashj team
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.tools;
+package org.dashj.tools;
 
-import org.bitcoinj.crypto.TrustStoreLoader;
-import org.bitcoinj.protocols.payments.PaymentProtocol;
-import org.bitcoinj.protocols.payments.PaymentProtocolException;
-import org.bitcoinj.protocols.payments.PaymentSession;
-import org.bitcoinj.uri.BitcoinURI;
-import org.bitcoinj.uri.BitcoinURIParseException;
+import org.dashj.crypto.TrustStoreLoader;
+import org.dashj.protocols.payments.PaymentProtocol;
+import org.dashj.protocols.payments.PaymentProtocolException;
+import org.dashj.protocols.payments.PaymentSession;
+import org.dashj.uri.PivxURI;
+import org.dashj.uri.BitcoinURIParseException;
 import org.bitcoin.protocols.payments.Protos;
 
 import java.io.FileInputStream;
@@ -58,7 +58,7 @@ public class PaymentProtocolTool {
             } else if ("http".equals(uri.getScheme())) {
                 session = PaymentSession.createFromUrl(arg).get();
             } else if ("bitcoin".equals(uri.getScheme())) {
-                BitcoinURI bcuri = new BitcoinURI(arg);
+                PivxURI bcuri = new PivxURI(arg);
                 final String paymentRequestUrl = bcuri.getPaymentRequestUrl();
                 if (paymentRequestUrl == null) {
                     System.err.println("No r= param in bitcoin URI");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 The bitcoinj authors.
+ * Copyright 2014 The dashj authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.wallet;
+package org.dashj.wallet;
 
-import org.bitcoinj.core.ECKey;
+import org.dashj.core.ECKey;
 
 import javax.annotation.Nullable;
 

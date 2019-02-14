@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.dashj.core;
 
 import com.google.common.annotations.*;
 import com.google.common.base.*;
@@ -26,17 +26,17 @@ import com.google.common.util.concurrent.*;
 import com.squareup.okhttp.*;
 import com.subgraph.orchid.*;
 import net.jcip.annotations.*;
-import org.bitcoinj.core.listeners.*;
-import org.bitcoinj.crypto.*;
-import org.bitcoinj.net.*;
-import org.bitcoinj.net.discovery.*;
-import org.bitcoinj.script.*;
-import org.bitcoinj.utils.*;
-import org.bitcoinj.utils.Threading;
-import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.listeners.KeyChainEventListener;
-import org.bitcoinj.wallet.listeners.ScriptsChangeEventListener;
-import org.bitcoinj.wallet.listeners.WalletCoinsReceivedEventListener;
+import org.dashj.core.listeners.*;
+import org.dashj.crypto.*;
+import org.dashj.net.*;
+import org.dashj.net.discovery.*;
+import org.dashj.script.*;
+import org.dashj.utils.*;
+import org.dashj.utils.Threading;
+import org.dashj.wallet.Wallet;
+import org.dashj.wallet.listeners.KeyChainEventListener;
+import org.dashj.wallet.listeners.ScriptsChangeEventListener;
+import org.dashj.wallet.listeners.WalletCoinsReceivedEventListener;
 import org.slf4j.*;
 
 import javax.annotation.*;
@@ -270,9 +270,9 @@ public class PeerGroup implements TransactionBroadcaster {
     /**
      * The default Bloom filter false positive rate, which is selected to be extremely low such that you hardly ever
      * download false positives. This provides maximum performance. Although this default can be overridden to push
-     * the FP rate higher, due to <a href="https://groups.google.com/forum/#!msg/bitcoinj/Ys13qkTwcNg/9qxnhwnkeoIJ">
+     * the FP rate higher, due to <a href="https://groups.google.com/forum/#!msg/dashj/Ys13qkTwcNg/9qxnhwnkeoIJ">
      * various complexities</a> there are still ways a remote peer can deanonymize the users wallet. This is why the
-     * FP rate is chosen for performance rather than privacy. If a future version of bitcoinj fixes the known
+     * FP rate is chosen for performance rather than privacy. If a future version of dashj fixes the known
      * de-anonymization attacks this FP rate may rise again (or more likely, become expressed as a bandwidth allowance).
      */
     public static final double DEFAULT_BLOOM_FILTER_FP_RATE = 0.00001;
@@ -443,7 +443,7 @@ public class PeerGroup implements TransactionBroadcaster {
         //DashSpecific
 
 
-
+        // todo: check bitcoin MN..
         context.setPeerGroupAndBlockChain(this, chain);
         vMinRequiredProtocolVersion = params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.MINIMUM);
     }
@@ -1269,10 +1269,10 @@ public class PeerGroup implements TransactionBroadcaster {
      * than the current chain head, the relevant parts of the chain won't be redownloaded for you.</p>
      *
      * <p>This method invokes {@link PeerGroup#recalculateFastCatchupAndFilter(FilterRecalculateMode)}.
-     * The return value of this method is the {@code ListenableFuture} returned by that invocation.</p>
+     * The return value of this method is the <code>ListenableFuture</code> returned by that invocation.</p>
      *
-     * @return a future that completes once each {@code Peer} in this group has had its
-     *         {@code BloomFilter} (re)set.
+     * @return a future that completes once each <code>Peer</code> in this group has had its
+     *         <code>BloomFilter</code> (re)set.
      */
     public ListenableFuture<BloomFilter> addPeerFilterProvider(PeerFilterProvider provider) {
         lock.lock();
@@ -1433,7 +1433,7 @@ public class PeerGroup implements TransactionBroadcaster {
 
     /**
      * Returns the number of currently connected peers. To be informed when this count changes, register a 
-     * {@link org.bitcoinj.core.listeners.PeerConnectionEventListener} and use the onPeerConnected/onPeerDisconnected methods.
+     * {@link org.dashj.core.listeners.PeerConnectionEventListener} and use the onPeerConnected/onPeerDisconnected methods.
      */
     public int numConnectedPeers() {
         return peers.size();
@@ -1445,7 +1445,7 @@ public class PeerGroup implements TransactionBroadcaster {
      * 
      * @param address destination IP and port.
      * @return The newly created Peer object or null if the peer could not be connected.
-     *         Use {@link org.bitcoinj.core.Peer#getConnectionOpenFuture()} if you
+     *         Use {@link org.dashj.core.Peer#getConnectionOpenFuture()} if you
      *         want a future which completes when the connection is open.
      */
     @Nullable
@@ -1687,6 +1687,18 @@ public class PeerGroup implements TransactionBroadcaster {
                     for (Peer peer : getConnectedPeers()) {
                         if (peer.getPeerVersionMessage().clientVersion < params.getProtocolVersionNum(NetworkParameters.ProtocolVersion.PONG))
                             continue;
+
+                        try {
+                            // todo: here i have to implement the GetBlock
+                            //System.out.println("Peer pings sent: " + peer.getSentPingNumber());
+                            //if (peer.getSentPingNumber() > 5) {
+                            //    if (peer.isDownloadData()) {
+                            //        peer.startBlockChainDownload();
+                            //    }
+                            //}
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
                         peer.ping();
                     }
                 } catch (Throwable e) {
@@ -2003,7 +2015,7 @@ public class PeerGroup implements TransactionBroadcaster {
 
     /**
      * Returns a future that is triggered when the number of connected peers is equal to the given number of
-     * peers. By using this with {@link org.bitcoinj.core.PeerGroup#getMaxConnections()} you can wait until the
+     * peers. By using this with {@link org.dashj.core.PeerGroup#getMaxConnections()} you can wait until the
      * network is fully online. To block immediately, just call get() on the result. Just calls
      * {@link #waitForPeersOfVersion(int, long)} with zero as the protocol version.
      *
@@ -2109,7 +2121,7 @@ public class PeerGroup implements TransactionBroadcaster {
      * enough, {@link PeerGroup#broadcastTransaction(Transaction)} will wait until the minimum number is reached so
      * propagation across the network can be observed. If no value has been set using
      * {@link PeerGroup#setMinBroadcastConnections(int)} a default of 80% of whatever
-     * {@link org.bitcoinj.core.PeerGroup#getMaxConnections()} returns is used.
+     * {@link org.dashj.core.PeerGroup#getMaxConnections()} returns is used.
      */
     public int getMinBroadcastConnections() {
         lock.lock();
@@ -2119,7 +2131,7 @@ public class PeerGroup implements TransactionBroadcaster {
                 if (max <= 1)
                     return max;
                 else
-                    return (int) Math.round(getMaxConnections() * 0.5);  //originally 0.8
+                    return (int) Math.round(getMaxConnections() * 0.8);
             }
             return minBroadcastConnections;
         } finally {
@@ -2128,7 +2140,7 @@ public class PeerGroup implements TransactionBroadcaster {
     }
 
     /**
-     * See {@link org.bitcoinj.core.PeerGroup#getMinBroadcastConnections()}.
+     * See {@link org.dashj.core.PeerGroup#getMinBroadcastConnections()}.
      */
     public void setMinBroadcastConnections(int value) {
         lock.lock();
@@ -2140,18 +2152,27 @@ public class PeerGroup implements TransactionBroadcaster {
     }
 
     /**
-     * Calls {@link PeerGroup#broadcastTransaction(Transaction,int)} with getMinBroadcastConnections() as the number
+     * Calls {@link PeerGroup#broadcastTransaction(Transaction,int,boolean)} with getMinBroadcastConnections() as the number
      * of connections to wait for before commencing broadcast.
      */
     @Override
     public TransactionBroadcast broadcastTransaction(final Transaction tx) {
-        return broadcastTransaction(tx, Math.max(1, getMinBroadcastConnections()));
+        return broadcastTransaction(tx, Math.max(1, getMinBroadcastConnections()),false);
+    }
+
+    /**
+     * Calls {@link PeerGroup#broadcastTransaction(Transaction,int,boolean)} with getMinBroadcastConnections() as the number
+     * of connections to wait for before commencing broadcast.
+     */
+    @Override
+    public TransactionBroadcast broadcastTransaction(final Transaction tx,boolean isSwiftX) {
+        return broadcastTransaction(tx, Math.max(1, getMinBroadcastConnections()),isSwiftX);
     }
 
     /**
      * <p>Given a transaction, sends it un-announced to one peer and then waits for it to be received back from other
      * peers. Once all connected peers have announced the transaction, the future available via the
-     * {@link org.bitcoinj.core.TransactionBroadcast#future()} method will be completed. If anything goes
+     * {@link org.dashj.core.TransactionBroadcast#future()} method will be completed. If anything goes
      * wrong the exception will be thrown when get() is called, or you can receive it via a callback on the
      * {@link ListenableFuture}. This method returns immediately, so if you want it to block just call get() on the
      * result.</p>
@@ -2163,18 +2184,17 @@ public class PeerGroup implements TransactionBroadcaster {
      * A good choice for proportion would be between 0.5 and 0.8 but if you want faster transmission during initial
      * bringup of the peer group you can lower it.</p>
      *
-     * <p>The returned {@link org.bitcoinj.core.TransactionBroadcast} object can be used to get progress feedback,
+     * <p>The returned {@link org.dashj.core.TransactionBroadcast} object can be used to get progress feedback,
      * which is calculated by watching the transaction propagate across the network and be announced by peers.</p>
      */
-    public TransactionBroadcast broadcastTransaction(final Transaction tx, final int minConnections) {
+    public TransactionBroadcast broadcastTransaction(final Transaction tx, final int minConnections, boolean isSwiftX) {
         // If we don't have a record of where this tx came from already, set it to be ourselves so Peer doesn't end up
         // redownloading it from the network redundantly.
         if (tx.getConfidence().getSource().equals(TransactionConfidence.Source.UNKNOWN)) {
             log.info("Transaction source unknown, setting to SELF: {}", tx.getHashAsString());
             tx.getConfidence().setSource(TransactionConfidence.Source.SELF);
         }
-        tx.getConfidence().setPeerInfo(getConnectedPeers().size(), minConnections);
-        final TransactionBroadcast broadcast = new TransactionBroadcast(this, tx);
+        final TransactionBroadcast broadcast = new TransactionBroadcast(this, tx,isSwiftX);
         broadcast.setMinConnections(minConnections);
         // Send the TX to the wallet once we have a successful broadcast.
         Futures.addCallback(broadcast.future(), new FutureCallback<Transaction>() {
@@ -2215,8 +2235,8 @@ public class PeerGroup implements TransactionBroadcaster {
 
     /**
      * Returns the period between pings for an individual peer. Setting this lower means more accurate and timely ping
-     * times are available via {@link org.bitcoinj.core.Peer#getLastPingTime()} but it increases load on the
-     * remote node. It defaults to {@link PeerGroup#DEFAULT_PING_INTERVAL_MSEC}.
+     * times are available via {@link org.dashj.core.Peer#getLastPingTime()} but it increases load on the
+     * remote node. It defaults to 5000.
      */
     public long getPingIntervalMsec() {
         lock.lock();
@@ -2229,10 +2249,10 @@ public class PeerGroup implements TransactionBroadcaster {
 
     /**
      * Sets the period between pings for an individual peer. Setting this lower means more accurate and timely ping
-     * times are available via {@link org.bitcoinj.core.Peer#getLastPingTime()} but it increases load on the
+     * times are available via {@link org.dashj.core.Peer#getLastPingTime()} but it increases load on the
      * remote node. It defaults to {@link PeerGroup#DEFAULT_PING_INTERVAL_MSEC}.
      * Setting the value to be <= 0 disables pinging entirely, although you can still request one yourself
-     * using {@link org.bitcoinj.core.Peer#ping()}.
+     * using {@link org.dashj.core.Peer#ping()}.
      */
     public void setPingIntervalMsec(long pingIntervalMsec) {
         lock.lock();
@@ -2376,7 +2396,7 @@ public class PeerGroup implements TransactionBroadcaster {
     /**
      * When true (the default), PeerGroup will attempt to connect to a Bitcoin node running on localhost before
      * attempting to use the P2P network. If successful, only localhost will be used. This makes for a simple
-     * and easy way for a user to upgrade a bitcoinj based app running in SPV mode to fully validating security.
+     * and easy way for a user to upgrade a dashj based app running in SPV mode to fully validating security.
      */
     public void setUseLocalhostPeerWhenPossible(boolean useLocalhostPeerWhenPossible) {
         lock.lock();

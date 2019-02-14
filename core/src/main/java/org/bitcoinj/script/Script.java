@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.script;
+package org.dashj.script;
 
-import org.bitcoinj.core.*;
-import org.bitcoinj.crypto.TransactionSignature;
+import org.dashj.core.*;
+import org.dashj.crypto.TransactionSignature;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import static org.bitcoinj.script.ScriptOpCodes.*;
+import static org.dashj.script.ScriptOpCodes.*;
 import static com.google.common.base.Preconditions.*;
 
 // TODO: Redesign this entire API to be more type safe and organised.
@@ -675,7 +675,7 @@ public class Script {
      * correctly are considered valid, but won't be mined upon, so they'll be rapidly re-orgd out of the chain. This
      * logic is defined by <a href="https://github.com/bitcoin/bips/blob/master/bip-0016.mediawiki">BIP 16</a>.</p>
      *
-     * <p>bitcoinj does not support creation of P2SH transactions today. The goal of P2SH is to allow short addresses
+     * <p>dashj does not support creation of P2SH transactions today. The goal of P2SH is to allow short addresses
      * even for complex scripts (eg, multi-sig outputs) so they are convenient to work with in things like QRcodes or
      * with copy/paste, and also to minimize the size of the unspent output set (which improves performance of the
      * Bitcoin system).</p>
@@ -711,7 +711,7 @@ public class Script {
             }
             // First chunk must be an OP_N opcode too.
             if (decodeFromOpN(chunks.get(0).opcode) < 1) return false;
-        } catch (IllegalArgumentException e) { // thrown by decodeFromOpN()
+        } catch (IllegalStateException e) {
             return false;   // Not an OP_N opcode.
         }
         return true;
@@ -803,7 +803,7 @@ public class Script {
     /**
      * Cast a script chunk to a BigInteger.
      *
-     * @see #castToBigInteger(byte[], int, boolean) for values with different maximum
+     * @see #castToBigInteger(byte[], int) for values with different maximum
      * sizes.
      * @throws ScriptException if the chunk is longer than 4 bytes.
      */
@@ -815,7 +815,7 @@ public class Script {
 
     /**
      * Cast a script chunk to a BigInteger. Normally you would want
-     * {@link #castToBigInteger(byte[], boolean)} instead, this is only for cases where
+     * {@link #castToBigInteger(byte[])} instead, this is only for cases where
      * the normal maximum length does not apply (i.e. CHECKLOCKTIMEVERIFY).
      *
      * @param maxLength the maximum length in bytes.
@@ -838,12 +838,12 @@ public class Script {
 
     /**
      * Exposes the script interpreter. Normally you should not use this directly, instead use
-     * {@link org.bitcoinj.core.TransactionInput#verify(org.bitcoinj.core.TransactionOutput)} or
-     * {@link org.bitcoinj.script.Script#correctlySpends(org.bitcoinj.core.Transaction, long, Script)}. This method
+     * {@link org.dashj.core.TransactionInput#verify(org.dashj.core.TransactionOutput)} or
+     * {@link org.dashj.script.Script#correctlySpends(org.dashj.core.Transaction, long, Script)}. This method
      * is useful if you need more precise control or access to the final state of the stack. This interface is very
      * likely to change in future.
      *
-     * @deprecated Use {@link #executeScript(org.bitcoinj.core.Transaction, long, org.bitcoinj.script.Script, java.util.LinkedList, java.util.Set)}
+     * @deprecated Use {@link #executeScript(org.dashj.core.Transaction, long, org.dashj.script.Script, java.util.LinkedList, java.util.Set)}
      * instead.
      */
     @Deprecated
@@ -858,8 +858,8 @@ public class Script {
 
     /**
      * Exposes the script interpreter. Normally you should not use this directly, instead use
-     * {@link org.bitcoinj.core.TransactionInput#verify(org.bitcoinj.core.TransactionOutput)} or
-     * {@link org.bitcoinj.script.Script#correctlySpends(org.bitcoinj.core.Transaction, long, Script)}. This method
+     * {@link org.dashj.core.TransactionInput#verify(org.dashj.core.TransactionOutput)} or
+     * {@link org.dashj.script.Script#correctlySpends(org.dashj.core.Transaction, long, Script)}. This method
      * is useful if you need more precise control or access to the final state of the stack. This interface is very
      * likely to change in future.
      */
@@ -978,7 +978,7 @@ public class Script {
                     break;
                 case OP_FROMALTSTACK:
                     if (altstack.size() < 1)
-                        throw new ScriptException("Attempted OP_FROMALTSTACK on an empty altstack");
+                        throw new ScriptException("Attempted OP_TOALTSTACK on an empty altstack");
                     stack.add(altstack.pollLast());
                     break;
                 case OP_2DROP:
@@ -1129,7 +1129,7 @@ public class Script {
                     throw new ScriptException("Attempted to use disabled Script Op.");
                 case OP_EQUAL:
                     if (stack.size() < 2)
-                        throw new ScriptException("Attempted OP_EQUAL on a stack with size < 2");
+                        throw new ScriptException("Attempted OP_EQUALVERIFY on a stack with size < 2");
                     stack.add(Arrays.equals(stack.pollLast(), stack.pollLast()) ? new byte[] {1} : new byte[] {});
                     break;
                 case OP_EQUALVERIFY:
@@ -1564,7 +1564,7 @@ public class Script {
      *                         Accessing txContainingThis from another thread while this method runs results in undefined behavior.
      * @param scriptSigIndex The index in txContainingThis of the scriptSig (note: NOT the index of the scriptPubKey).
      * @param scriptPubKey The connected scriptPubKey containing the conditions needed to claim the value.
-     * @deprecated Use {@link #correctlySpends(org.bitcoinj.core.Transaction, long, org.bitcoinj.script.Script, java.util.Set)}
+     * @deprecated Use {@link #correctlySpends(org.dashj.core.Transaction, long, org.dashj.script.Script, java.util.Set)}
      * instead so that verification flags do not change as new verification options
      * are added.
      */
@@ -1648,7 +1648,7 @@ public class Script {
     }
 
     /**
-     * Get the {@link org.bitcoinj.script.Script.ScriptType}.
+     * Get the {@link org.dashj.script.Script.ScriptType}.
      * @return The script type.
      */
     public ScriptType getScriptType() {

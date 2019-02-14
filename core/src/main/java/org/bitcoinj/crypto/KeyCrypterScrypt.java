@@ -15,16 +15,15 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.crypto;
+package org.dashj.crypto;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Stopwatch;
 import com.google.protobuf.ByteString;
 import com.lambdaworks.crypto.SCrypt;
-import org.bitcoinj.core.Utils;
-import org.bitcoinj.wallet.Protos;
-import org.bitcoinj.wallet.Protos.ScryptParameters;
-import org.bitcoinj.wallet.Protos.Wallet.EncryptionType;
+import org.dashj.core.Utils;
+import org.dashj.wallet.Protos;
+import org.dashj.wallet.Protos.ScryptParameters;
+import org.dashj.wallet.Protos.Wallet.EncryptionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.BufferedBlockCipher;
@@ -103,8 +102,8 @@ public class KeyCrypterScrypt implements KeyCrypter {
     }
 
     /**
-     * Encryption/Decryption using custom number of iterations parameters and a random salt.
-     * As of August 2016, a useful value for mobile devices is 4096 (derivation takes about 1 second).
+     * Encryption/Decryption using custom number of iterations parameters and a random salt. A useful value for mobile
+     * devices is 512 (~500 ms).
      *
      * @param iterations
      *            number of scrypt iterations
@@ -155,10 +154,7 @@ public class KeyCrypterScrypt implements KeyCrypter {
                 log.warn("You are using a ScryptParameters with no salt. Your encryption may be vulnerable to a dictionary attack.");
             }
 
-            final Stopwatch watch = Stopwatch.createStarted();
             byte[] keyBytes = SCrypt.scrypt(passwordBytes, salt, (int) scryptParameters.getN(), scryptParameters.getR(), scryptParameters.getP(), KEY_LENGTH);
-            watch.stop();
-            log.info("Deriving key took {} for {} scrypt iterations.", watch, scryptParameters.getN());
             return new KeyParameter(keyBytes);
         } catch (Exception e) {
             throw new KeyCrypterException("Could not generate key from password and salt.", e);
@@ -261,7 +257,7 @@ public class KeyCrypterScrypt implements KeyCrypter {
 
     @Override
     public String toString() {
-        return "AES-" + KEY_LENGTH * 8 + "-CBC, Scrypt (N: " + scryptParameters.getN() + ")";
+        return "Scrypt/AES";
     }
 
     @Override

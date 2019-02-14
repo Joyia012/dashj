@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.utils;
+package org.dashj.utils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -51,7 +51,7 @@ public class BriefLogFormatter extends Formatter {
 
     public static void initWithSilentBitcoinJ() {
         init();
-        Logger.getLogger("org.bitcoinj").setLevel(Level.SEVERE);
+        Logger.getLogger("org.dashj").setLevel(Level.SEVERE);
     }
 
     @Override

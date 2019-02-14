@@ -15,30 +15,30 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.dashj.core;
 
-import org.bitcoinj.core.TransactionConfidence.ConfidenceType;
-import org.bitcoinj.crypto.TransactionSignature;
-import org.bitcoinj.script.Script;
-import org.bitcoinj.script.ScriptBuilder;
-import org.bitcoinj.script.ScriptOpCodes;
-import org.bitcoinj.signers.TransactionSigner;
-import org.bitcoinj.utils.ExchangeRate;
-import org.bitcoinj.wallet.Wallet;
-import org.bitcoinj.wallet.WalletTransaction.Pool;
+import org.dashj.core.TransactionConfidence.ConfidenceType;
+import org.dashj.crypto.TransactionSignature;
+import org.dashj.script.Script;
+import org.dashj.script.ScriptBuilder;
+import org.dashj.script.ScriptOpCodes;
+import org.dashj.signers.TransactionSigner;
+import org.dashj.utils.ExchangeRate;
+import org.dashj.wallet.Wallet;
+import org.dashj.wallet.WalletTransaction.Pool;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 import javax.annotation.Nullable;
 import java.io.*;
 import java.util.*;
 
-import static org.bitcoinj.core.Utils.*;
+import static org.dashj.core.Utils.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import java.math.BigInteger;
@@ -48,7 +48,7 @@ import java.math.BigInteger;
  * the minting of new coins. A Transaction object corresponds to the equivalent in the Bitcoin C++ implementation.</p>
  *
  * <p>Transactions are the fundamental atoms of Bitcoin and have many powerful features. Read
- * <a href="https://bitcoinj.github.io/working-with-transactions">"Working with transactions"</a> in the
+ * <a href="https://dashj.github.io/working-with-transactions">"Working with transactions"</a> in the
  * documentation to learn more about how to use this class.</p>
  *
  * <p>All Bitcoin transactions are at risk of being reversed, though the risk is much less than with traditional payment
@@ -78,12 +78,8 @@ public class Transaction extends ChildMessage {
     public static final Comparator<Transaction> SORT_TX_BY_HEIGHT = new Comparator<Transaction>() {
         @Override
         public int compare(final Transaction tx1, final Transaction tx2) {
-            final TransactionConfidence confidence1 = tx1.getConfidence();
-            final int height1 = confidence1.getConfidenceType() == ConfidenceType.BUILDING
-                    ? confidence1.getAppearedAtChainHeight() : Block.BLOCK_HEIGHT_UNKNOWN;
-            final TransactionConfidence confidence2 = tx2.getConfidence();
-            final int height2 = confidence2.getConfidenceType() == ConfidenceType.BUILDING
-                    ? confidence2.getAppearedAtChainHeight() : Block.BLOCK_HEIGHT_UNKNOWN;
+            final int height1 = tx1.getConfidence().getAppearedAtChainHeight();
+            final int height2 = tx2.getConfidence().getAppearedAtChainHeight();
             final int heightComparison = -(Ints.compare(height1, height2));
             //If height1==height2, compare by tx hash to make comparator consistent with equals
             return heightComparison != 0 ? heightComparison : tx1.getHash().compareTo(tx2.getHash());
@@ -106,7 +102,7 @@ public class Transaction extends ChildMessage {
 
     /**
      * If using this feePerKb, transactions will get confirmed within the next couple of blocks.
-     * This should be adjusted from time to time. Last adjustment: February 2017.
+     * This should be adjusted from time to time. Last adjustment: March 2016.
      */
     public static final Coin DEFAULT_TX_FEE = Coin.valueOf(CoinDefinition.DEFAULT_MIN_TX_FEE); // 0.5 mBTC
 
@@ -116,11 +112,6 @@ public class Transaction extends ChildMessage {
      * {@link TransactionOutput#getMinNonDustValue(Coin)}.
      */
     public static final Coin MIN_NONDUST_OUTPUT = Coin.valueOf(CoinDefinition.DUST_LIMIT); // satoshis
-
-    /**
-     * Max initial size of inputs and outputs ArrayList.
-     */
-    public static final int MAX_INITIAL_INPUTS_OUTPUTS_SIZE = 20;
 
     // These are bitcoin serialized.
     private long version;
@@ -226,7 +217,6 @@ public class Transaction extends ChildMessage {
      * @param params NetworkParameters object.
      * @param payload Bitcoin protocol formatted byte array containing message content.
      * @param offset The location of the first payload byte within the array.
-     * @param parseRetain Whether to retain the backing byte array for quick reserialization.
      * If true and the backing byte array is invalidated due to modification of a field then
      * the cached bytes may be repopulated and retained if the message is serialized again in the future.
      * @param length The length of message if known.  Usually this is provided when deserializing of the wire
@@ -425,8 +415,6 @@ public class Transaction extends ChildMessage {
      */
     public Coin getFee() {
         Coin fee = Coin.ZERO;
-        if (inputs.isEmpty() || outputs.isEmpty()) // Incomplete transaction
-            return null;
         for (TransactionInput input : inputs) {
             if (input.getValue() == null)
                 return null;
@@ -558,14 +546,14 @@ public class Transaction extends ChildMessage {
     @Override
     protected void parse() throws ProtocolException {
         cursor = offset;
-
+        System.out.println("Starting reading transaction cursor offset: "+cursor);
         version = readUint32();
         optimalEncodingMessageSize = 4;
 
         // First come the inputs.
         long numInputs = readVarInt();
         optimalEncodingMessageSize += VarInt.sizeOf(numInputs);
-        inputs = new ArrayList<TransactionInput>(Math.min((int) numInputs, MAX_INITIAL_INPUTS_OUTPUTS_SIZE));
+        inputs = new ArrayList<TransactionInput>((int) numInputs);
         for (long i = 0; i < numInputs; i++) {
             TransactionInput input = new TransactionInput(params, this, payload, cursor, serializer);
             inputs.add(input);
@@ -576,7 +564,7 @@ public class Transaction extends ChildMessage {
         // Now the outputs
         long numOutputs = readVarInt();
         optimalEncodingMessageSize += VarInt.sizeOf(numOutputs);
-        outputs = new ArrayList<TransactionOutput>(Math.min((int) numOutputs, MAX_INITIAL_INPUTS_OUTPUTS_SIZE));
+        outputs = new ArrayList<TransactionOutput>((int) numOutputs);
         for (long i = 0; i < numOutputs; i++) {
             TransactionOutput output = new TransactionOutput(params, this, payload, cursor, serializer);
             outputs.add(output);
@@ -648,10 +636,8 @@ public class Transaction extends ChildMessage {
     public String toString(@Nullable AbstractBlockChain chain) {
         StringBuilder s = new StringBuilder();
         s.append("  ").append(getHashAsString()).append('\n');
-        if (updatedAt != null)
-            s.append("  updated: ").append(Utils.dateTimeFormat(updatedAt)).append('\n');
-        if (version != 1)
-            s.append("  version ").append(version).append('\n');
+        if (hasConfidence())
+            s.append("  confidence: ").append(getConfidence()).append('\n');
         if (isTimeLocked()) {
             s.append("  time locked until ");
             if (lockTime < LOCKTIME_THRESHOLD) {
@@ -665,8 +651,12 @@ public class Transaction extends ChildMessage {
             }
             s.append('\n');
         }
-        if (hasRelativeLockTime()) {
-            s.append("  has relative lock time\n");
+        if (isOptInFullRBF()) {
+            s.append("  opts into full replace-by-fee\n");
+        }
+        if (inputs.size() == 0) {
+            s.append("  INCOMPLETE: No inputs!\n");
+            return s.toString();
         }
         if (isCoinBase()) {
             String script;
@@ -682,48 +672,43 @@ public class Transaction extends ChildMessage {
                 .append(")  (scriptPubKey ").append(script2).append(")\n");
             return s.toString();
         }
-        if (!inputs.isEmpty()) {
-            for (TransactionInput in : inputs) {
-                s.append("     ");
-                s.append("in   ");
-
-                try {
-                    String scriptSigStr = in.getScriptSig().toString();
-                    s.append(!Strings.isNullOrEmpty(scriptSigStr) ? scriptSigStr : "<no scriptSig>");
-                    if (in.getValue() != null)
-                        s.append(" ").append(in.getValue().toFriendlyString());
-                    s.append("\n          ");
-                    s.append("outpoint:");
-                    final TransactionOutPoint outpoint = in.getOutpoint();
-                    s.append(outpoint.toString());
-                    final TransactionOutput connectedOutput = outpoint.getConnectedOutput();
-                    if (connectedOutput != null) {
-                        Script scriptPubKey = connectedOutput.getScriptPubKey();
-                        if (scriptPubKey.isSentToAddress() || scriptPubKey.isPayToScriptHash()) {
-                            s.append(" hash160:");
-                            s.append(Utils.HEX.encode(scriptPubKey.getPubKeyHash()));
-                        }
-                    }
-                    if (in.hasSequence()) {
-                        s.append("\n          sequence:").append(Long.toHexString(in.getSequenceNumber()));
-                        if (version >=2 && in.hasRelativeLockTime())
-                            s.append(", has RLT");
-                    }
-                } catch (Exception e) {
-                    s.append("[exception: ").append(e.getMessage()).append("]");
-                }
-                s.append('\n');
-            }
-        } else {
+        for (TransactionInput in : inputs) {
             s.append("     ");
-            s.append("INCOMPLETE: No inputs!\n");
+            s.append("in   ");
+
+            try {
+                Script scriptSig = in.getScriptSig();
+                s.append(scriptSig);
+                if (in.getValue() != null)
+                    s.append(" ").append(in.getValue().toFriendlyString());
+                s.append("\n          ");
+                s.append("outpoint:");
+                final TransactionOutPoint outpoint = in.getOutpoint();
+                s.append(outpoint.toString());
+                final TransactionOutput connectedOutput = outpoint.getConnectedOutput();
+                if (connectedOutput != null) {
+                    Script scriptPubKey = connectedOutput.getScriptPubKey();
+                    if (scriptPubKey.isSentToAddress() || scriptPubKey.isPayToScriptHash()) {
+                        s.append(" hash160:");
+                        s.append(Utils.HEX.encode(scriptPubKey.getPubKeyHash()));
+                    }
+                }
+                if (in.hasSequence()) {
+                    s.append("\n          sequence:").append(Long.toHexString(in.getSequenceNumber()));
+                    if (in.isOptInFullRBF())
+                        s.append(", opts into full RBF");
+                }
+            } catch (Exception e) {
+                s.append("[exception: ").append(e.getMessage()).append("]");
+            }
+            s.append('\n');
         }
         for (TransactionOutput out : outputs) {
             s.append("     ");
             s.append("out  ");
             try {
-                String scriptPubKeyStr = out.getScriptPubKey().toString();
-                s.append(!Strings.isNullOrEmpty(scriptPubKeyStr) ? scriptPubKeyStr : "<no scriptPubKey>");
+                Script scriptPubKey = out.getScriptPubKey();
+                s.append(scriptPubKey);
                 s.append(" ");
                 s.append(out.getValue().toFriendlyString());
                 if (!out.isAvailableForSpending()) {
@@ -765,8 +750,8 @@ public class Transaction extends ChildMessage {
 
     /**
      * Adds an input to this transaction that imports value from the given output. Note that this input is <i>not</i>
-     * complete and after every input is added with {@link #addInput()} and every output is added with
-     * {@link #addOutput()}, a {@link TransactionSigner} must be used to finalize the transaction and finish the inputs
+     * complete and after every input is added with {@link #addInput(TransactionOutput)} and every output is added with
+     * {@link #addOutput(TransactionOutput)}, a {@link TransactionSigner} must be used to finalize the transaction and finish the inputs
      * off. Otherwise it won't be accepted by the network.
      * @return the newly created input.
      */
@@ -821,7 +806,7 @@ public class Transaction extends ChildMessage {
     }
 
     /**
-     * Same as {@link #addSignedInput(TransactionOutPoint, org.bitcoinj.script.Script, ECKey, org.bitcoinj.core.Transaction.SigHash, boolean)}
+     * Same as {@link #addSignedInput(TransactionOutPoint, org.dashj.script.Script, ECKey, org.dashj.core.Transaction.SigHash, boolean)}
      * but defaults to {@link SigHash#ALL} and "false" for the anyoneCanPay flag. This is normally what you want.
      */
     public TransactionInput addSignedInput(TransactionOutPoint prevOut, Script scriptPubKey, ECKey sigKey) throws ScriptException {
@@ -895,7 +880,7 @@ public class Transaction extends ChildMessage {
 
     /**
      * Calculates a signature that is valid for being inserted into the input at the given position. This is simply
-     * a wrapper around calling {@link Transaction#hashForSignature(int, byte[], org.bitcoinj.core.Transaction.SigHash, boolean)}
+     * a wrapper around calling {@link Transaction#hashForSignature(int, byte[], org.dashj.core.Transaction.SigHash, boolean)}
      * followed by {@link ECKey#sign(Sha256Hash)} and then returning a new {@link TransactionSignature}. The key
      * must be usable for signing as-is: if the key is encrypted it must be decrypted first external to this method.
      *
@@ -915,7 +900,7 @@ public class Transaction extends ChildMessage {
 
     /**
      * Calculates a signature that is valid for being inserted into the input at the given position. This is simply
-     * a wrapper around calling {@link Transaction#hashForSignature(int, byte[], org.bitcoinj.core.Transaction.SigHash, boolean)}
+     * a wrapper around calling {@link Transaction#hashForSignature(int, byte[], org.dashj.core.Transaction.SigHash, boolean)}
      * followed by {@link ECKey#sign(Sha256Hash)} and then returning a new {@link TransactionSignature}.
      *
      * @param inputIndex Which input to calculate the signature for, as an index.
@@ -1108,13 +1093,11 @@ public class Transaction extends ChildMessage {
         this.lockTime = lockTime;
     }
 
+    /**
+     * @return the version
+     */
     public long getVersion() {
         return version;
-    }
-
-    public void setVersion(int version) {
-        this.version = version;
-        unCache();
     }
 
     /** Returns an unmodifiable view of all inputs. */
@@ -1161,7 +1144,7 @@ public class Transaction extends ChildMessage {
     }
 
     /**
-     * Returns the confidence object for this transaction from the {@link org.bitcoinj.core.TxConfidenceTable}
+     * Returns the confidence object for this transaction from the {@link org.dashj.core.TxConfidenceTable}
      * referenced by the implicit {@link Context}.
      */
     public TransactionConfidence getConfidence() {
@@ -1169,7 +1152,7 @@ public class Transaction extends ChildMessage {
     }
 
     /**
-     * Returns the confidence object for this transaction from the {@link org.bitcoinj.core.TxConfidenceTable}
+     * Returns the confidence object for this transaction from the {@link org.dashj.core.TxConfidenceTable}
      * referenced by the given {@link Context}.
      */
     public TransactionConfidence getConfidence(Context context) {
@@ -1177,7 +1160,7 @@ public class Transaction extends ChildMessage {
     }
 
     /**
-     * Returns the confidence object for this transaction from the {@link org.bitcoinj.core.TxConfidenceTable}
+     * Returns the confidence object for this transaction from the {@link org.dashj.core.TxConfidenceTable}
      */
     public TransactionConfidence getConfidence(TxConfidenceTable table) {
         if (confidence == null)
@@ -1264,8 +1247,10 @@ public class Transaction extends ChildMessage {
         Coin valueOut = Coin.ZERO;
         HashSet<TransactionOutPoint> outpoints = new HashSet<TransactionOutPoint>();
         for (TransactionInput input : inputs) {
-            if (outpoints.contains(input.getOutpoint()))
+            if (outpoints.contains(input.getOutpoint())) {
+                log.error("Duplicated output in a transaction "+toString());
                 throw new VerificationException.DuplicatedOutPoint();
+            }
             outpoints.add(input.getOutpoint());
         }
         try {
@@ -1283,8 +1268,13 @@ public class Transaction extends ChildMessage {
         }
 
         if (isCoinBase()) {
-            if (inputs.get(0).getScriptBytes().length < 2 || inputs.get(0).getScriptBytes().length > 100)
+            byte[] scriptBytes = inputs.get(0).getScriptBytes();
+            if (scriptBytes.length < 2 || scriptBytes.length > 100) {
+                log.info("#### Invalid transaction, "+toString());
+                log.info("### invalid script: "+ Hex.toHexString(scriptBytes));
+                //log.info("#### Invalid transaction script, "+inputs.get(0).toString());
                 throw new VerificationException.CoinbaseScriptSizeOutOfRange();
+            }
         } else {
             for (TransactionInput input : inputs)
                 if (input.isCoinBase())
@@ -1293,8 +1283,7 @@ public class Transaction extends ChildMessage {
     }
 
     /**
-     * <p>A transaction is time-locked if at least one of its inputs is non-final and it has a lock time. A transaction can
-     * also have a relative lock time which this method doesn't tell. Use {@link #hasRelativeLockTime()} to find out.</p>
+     * <p>A transaction is time locked if at least one of its inputs is non-final and it has a lock time</p>
      *
      * <p>To check if this transaction is final at a given height and time, see {@link Transaction#isFinal(int, long)}
      * </p>
@@ -1309,15 +1298,12 @@ public class Transaction extends ChildMessage {
     }
 
     /**
-     * A transaction has a relative lock time
-     * (<a href="https://github.com/bitcoin/bips/blob/master/bip-0068.mediawiki">BIP 68</a>) if it is version 2 or
-     * higher and at least one of its inputs has its {@link TransactionInput#SEQUENCE_LOCKTIME_DISABLE_FLAG} cleared.
+     * Returns whether this transaction will opt into the
+     * <a href="https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki">full replace-by-fee </a> semantics.
      */
-    public boolean hasRelativeLockTime() {
-        if (version < 2)
-            return false;
+    public boolean isOptInFullRBF() {
         for (TransactionInput input : getInputs())
-            if (input.hasRelativeLockTime())
+            if (input.isOptInFullRBF())
                 return true;
         return false;
     }

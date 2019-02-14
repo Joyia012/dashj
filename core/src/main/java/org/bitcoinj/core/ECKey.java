@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.dashj.core;
 
-import org.bitcoinj.crypto.*;
+import org.dashj.crypto.*;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -28,8 +28,8 @@ import com.google.common.primitives.UnsignedBytes;
 import org.bitcoin.NativeSecp256k1;
 import org.bitcoin.NativeSecp256k1Util;
 import org.bitcoin.Secp256k1Context;
-import org.bitcoinj.wallet.Protos;
-import org.bitcoinj.wallet.Wallet;
+import org.dashj.wallet.Protos;
+import org.dashj.wallet.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.asn1.*;
@@ -62,7 +62,7 @@ import java.util.Comparator;
 import static com.google.common.base.Preconditions.*;
 
 // TODO: Move this class to tracking compression state itself.
-// The Bouncy Castle developers are deprecating their own tracking of the compression state.
+// The Bouncy Castle guys are deprecating their own tracking of the compression state.
 
 /**
  * <p>Represents an elliptic curve public and (optionally) private key, usable for digital signatures but not encryption.
@@ -420,7 +420,7 @@ public class ECKey implements EncryptableItem {
     /**
      * Output this ECKey as an ASN.1 encoded private key, as understood by OpenSSL or used by Bitcoin Core
      * in its wallet storage format.
-     * @throws org.bitcoinj.core.ECKey.MissingPrivateKeyException if the private key is missing or encrypted.
+     * @throws org.dashj.core.ECKey.MissingPrivateKeyException if the private key is missing or encrypted.
      */
     public byte[] toASN1() {
         try {
@@ -625,7 +625,7 @@ public class ECKey implements EncryptableItem {
 
     /**
      * Signs the given hash and returns the R and S components as BigIntegers. In the Bitcoin protocol, they are
-     * usually encoded using ASN.1 format, so you want {@link org.bitcoinj.core.ECKey.ECDSASignature#toASN1()}
+     * usually encoded using ASN.1 format, so you want {@link org.dashj.core.ECKey.ECDSASignature#toASN1()}
      * instead. However sometimes the independent components can be useful, for instance, if you're going to do
      * further EC maths on them.
      * @throws KeyCrypterException if this ECKey doesn't have a private part.
@@ -644,7 +644,7 @@ public class ECKey implements EncryptableItem {
 
     /**
      * Signs the given hash and returns the R and S components as BigIntegers. In the Bitcoin protocol, they are
-     * usually encoded using DER format, so you want {@link org.bitcoinj.core.ECKey.ECDSASignature#encodeToDER()}
+     * usually encoded using DER format, so you want {@link org.dashj.core.ECKey.ECDSASignature#encodeToDER()}
      * instead. However sometimes the independent components can be useful, for instance, if you're doing to do further
      * EC maths on them.
      *
@@ -959,31 +959,6 @@ public class ECKey implements EncryptableItem {
         return key;
     }
 
-    public static ECKey signedMessageToKey(Sha256Hash messageHash, byte [] signatureEncoded) throws SignatureException {
-
-        // Parse the signature bytes into r/s and the selector value.
-        if (signatureEncoded.length < 65)
-            throw new SignatureException("Signature truncated, expected 65 bytes and got " + signatureEncoded.length);
-        int header = signatureEncoded[0] & 0xFF;
-        // The header byte: 0x1B = first key with even y, 0x1C = first key with odd y,
-        //                  0x1D = second key with even y, 0x1E = second key with odd y
-        if (header < 27 || header > 34)
-            throw new SignatureException("Header byte out of range: " + header);
-        BigInteger r = new BigInteger(1, Arrays.copyOfRange(signatureEncoded, 1, 33));
-        BigInteger s = new BigInteger(1, Arrays.copyOfRange(signatureEncoded, 33, 65));
-        ECDSASignature sig = new ECDSASignature(r, s);
-        boolean compressed = false;
-        if (header >= 31) {
-            compressed = true;
-            header -= 4;
-        }
-        int recId = header - 27;
-        ECKey key = ECKey.recoverFromSignature(recId, sig, messageHash, compressed);
-        if (key == null)
-            throw new SignatureException("Could not recover public key from signature");
-        return key;
-    }
-
     /**
      * Convenience wrapper around {@link ECKey#signedMessageToKey(String, String)}. If the key derived from the
      * signature is not the same as this one, throws a SignatureException.
@@ -1078,7 +1053,7 @@ public class ECKey implements EncryptableItem {
 
     /**
      * Returns a 32 byte array containing the private key.
-     * @throws org.bitcoinj.core.ECKey.MissingPrivateKeyException if the private key bytes are missing/encrypted.
+     * @throws org.dashj.core.ECKey.MissingPrivateKeyException if the private key bytes are missing/encrypted.
      */
     public byte[] getPrivKeyBytes() {
         return Utils.bigIntegerToBytes(getPrivKey(), 32);
@@ -1086,7 +1061,7 @@ public class ECKey implements EncryptableItem {
 
     /**
      * Exports the private key in the form used by Bitcoin Core's "dumpprivkey" and "importprivkey" commands. Use
-     * the {@link org.bitcoinj.core.DumpedPrivateKey#toString()} method to get the string.
+     * the {@link org.dashj.core.DumpedPrivateKey#toString()} method to get the string.
      *
      * @param params The network this key is intended for use on.
      * @return Private key bytes as a {@link DumpedPrivateKey}.
@@ -1316,9 +1291,6 @@ public class ECKey implements EncryptableItem {
                 helper.add("priv WIF", getPrivateKeyAsWiF(params));
             } catch (IllegalStateException e) {
                 // TODO: Make hasPrivKey() work for deterministic keys and fix this.
-            } catch (Exception e) {
-                final String message = e.getMessage();
-                helper.add("priv EXCEPTION", e.getClass().getName() + (message != null ? ": " + message : ""));
             }
         }
         if (creationTimeSeconds > 0)

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.dashj.core;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +26,7 @@ import java.util.List;
  * <p>Instances of this class are not safe for use by multiple threads.</p>
  */
 public class NotFoundMessage extends InventoryMessage {
-    public static int MIN_PROTOCOL_VERSION = CoinDefinition.MIN_PROTOCOL_VERSION; //Use minimum Dash Protocol Version (for unit tests)
+    public static int MIN_PROTOCOL_VERSION = 70001;
 
     public NotFoundMessage(NetworkParameters params) {
         super(params);

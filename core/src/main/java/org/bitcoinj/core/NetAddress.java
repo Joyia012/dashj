@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.dashj.core;
 
 import com.google.common.net.InetAddresses;
-import org.bitcoinj.params.MainNetParams;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
 import static com.google.common.base.Preconditions.checkNotNull;

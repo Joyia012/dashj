@@ -4,8 +4,7 @@
 
   <groupId>org.dashj</groupId>
   <artifactId>dashj-parent</artifactId>
-  <version>0.14.7</version>
-
+  <version>0.14.3-12.1</version>
   <packaging>pom</packaging>
 
   <modules>
@@ -25,7 +24,7 @@
   <scm>
     <connection>scm:git:https://github.com/HashEngineering/darkcoinj</connection>
     <developerConnection>scm:git:https://github.com/HashEngineering/darkcoinj</developerConnection>
-    <url>scm:git:https://github.com/bitcoinj/darkcoinj</url>
+    <url>scm:git:https://github.com/dashj/darkcoinj</url>
   </scm>
 
   <name>dashj Parent</name>
@@ -55,8 +54,8 @@
 
   <distributionManagement>
     <repository>
-      <id>bintray-dash-Dashj</id>
-      <name>dash-Dashj</name>
+      <id>bintray-bitcoin-Pivxj</id>
+      <name>dash-Pivxj</name>
       <url>https://api.bintray.com/maven/dash/Dashj/org.dashj/;publish=1</url>
     </repository>
   </distributionManagement>

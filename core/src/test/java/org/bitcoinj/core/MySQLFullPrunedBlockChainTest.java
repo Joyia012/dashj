@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.bitcoinj.core;
+package org.dashj.core;
 
-import org.bitcoinj.store.BlockStoreException;
-import org.bitcoinj.store.FullPrunedBlockStore;
-import org.bitcoinj.store.MySQLFullPrunedBlockStore;
+import org.dashj.store.BlockStoreException;
+import org.dashj.store.FullPrunedBlockStore;
+import org.dashj.store.MySQLFullPrunedBlockStore;
 import org.junit.After;
 import org.junit.Ignore;
 
@@ -35,8 +35,8 @@ public class MySQLFullPrunedBlockChainTest extends AbstractFullPrunedBlockChainT
 
     // Replace these with your mysql location/credentials and remove @Ignore to test
     private static final String DB_HOSTNAME = "localhost";
-    private static final String DB_NAME = "bitcoinj_test";
-    private static final String DB_USERNAME = "bitcoinj";
+    private static final String DB_NAME = "dashj_test";
+    private static final String DB_USERNAME = "dashj";
     private static final String DB_PASSWORD = "password";
 
     @Override
